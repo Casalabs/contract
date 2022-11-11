@@ -52,7 +52,7 @@ module suino::flip{
        let fee_balance = balance::split<SUI>(&mut sui_balance,fee_amt); 
        pool::add_reward(pool,fee_balance);
         
-       let jackpot_number = random::get_random(rand,ctx) % 2;
+       let jackpot_number = random::get_random_int(rand,ctx) % 2;
 
       //pool.sui sub
        if (jackpot_number == value){
