@@ -1,12 +1,12 @@
 module suino::random{
-    use std::vector;
+    
     use sui::object::{Self,UID};
     use sui::tx_context::{Self,TxContext};
     use sui::transfer;
     use sui::ecdsa;
     use suino::utils;
 
-
+    
     struct Random has key{
         id:UID,
         random_hash:vector<u8>,
@@ -41,14 +41,13 @@ module suino::random{
         // let new_object = object::new(ctx);
         let object_hash = ctx_hash(ctx);
         let random_hash = utils::vector_combine(random.random_hash,object_hash);
-        random_hash = keccak256(random_hash);
+        random_hash = utils::keccak256(random_hash);
         random.random_hash = random_hash;
     }
 
 
-    fun keccak256(data:vector<u8>):vector<u8>{
-        ecdsa::keccak256(&data)
-    }
+
+
 
     fun ctx_hash(ctx:&mut TxContext):vector<u8>{
         let new_object = object::new(ctx);
@@ -59,9 +58,11 @@ module suino::random{
         object_hash
     }
 
+
     public fun get_random(random:&Random,ctx:&mut TxContext):u64{
         let epoch = tx_context::epoch(ctx);
-        utils::u64_from_vector(&random.random_hash,epoch)
+        let random_hash = random.random_hash;
+        utils::u64_from_vector(random_hash,epoch)
     }
 }
 

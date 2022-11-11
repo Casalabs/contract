@@ -1,11 +1,11 @@
 module suino::pool{
     use sui::object::{Self,UID};
-    use sui::coin::{Self};
+    
     use sui::balance::{Self,Balance};
     use sui::sui::SUI;
     use sui::transfer;
-    use sui::tx_context::{Self,TxContext};
-    use suino::utils;
+    use sui::tx_context::{TxContext};
+    
     const EZeroAmount:u64 = 0;
     
     // struct LSP has drop{}
@@ -47,8 +47,8 @@ module suino::pool{
    }
 
     // pool.sui remove 
-   public fun remove_sui(pool:&mut Pool,balance:u64):Balance<SUI>{
-        balance::split<SUI>(&mut pool.sui,balance)
+   public fun remove_sui(pool:&mut Pool,amount:u64):Balance<SUI>{
+        balance::split<SUI>(&mut pool.sui,amount)
         
    }
 
@@ -91,66 +91,3 @@ module suino::pool{
 
 }
 
-#[test_only]
-module suino::pool_test{
-    use suino::pool::{Self,Pool};
-    use sui::test_scenario::{Self as test,next_tx,ctx};
-    use std::debug;
-    use sui::balance::{Self};
-    use sui::sui::SUI;
-    use sui::coin::{Self,Coin};
-   #[test] fun test_pool(){
-        let owner = @0xC0FFEE;
-        let user = @0xA1;
-        let scenario_val = test::begin(user);
-        let scenario = &mut scenario_val;
-        //init test
-        next_tx(scenario,owner);
-        {
-            pool::init_for_testing(ctx(scenario));
-        };
-        //pool_sui add test
-       next_tx(scenario,user);
-        {
-            let pool = test::take_shared<Pool>(scenario);
-          
-            let balance = balance::create_for_testing<SUI>(10000000);
-
-            pool::add_sui(&mut pool,balance);
-           
-            assert!(pool::get_balance(&pool) == 10000000 ,1);
-
-
-            test::return_shared(pool);
-        };
-
-        //remove test
-        next_tx(scenario,user);
-        {
-            let pool = test::take_shared<Pool>(scenario);
-            let remove_value = pool::remove_sui(&mut pool,100000);
-            let remove_coin = coin::from_balance(remove_value,ctx(scenario));
-            test::return_to_sender(scenario,remove_coin);
-            //pool.sui test
-            assert!(pool::get_balance(&pool) == 9900000,1);
-            debug::print(&pool::get_fee_reward(&pool));
-            
-            //reward test
-            assert!(pool::get_fee_reward(&pool) == 30,1);
-            test::return_shared(pool);
-        };
-
-        //user balance checking
-        next_tx(scenario,user);
-        {
-            let sui = test::take_from_sender<Coin<SUI>>(scenario);
-            let sui_amt = coin::value(&sui);
-            assert!(sui_amt ==99970,0);
-            test::return_to_sender(scenario,sui);
-        };
-
-        test::end(scenario_val);
-   }
-   
-   
-}
