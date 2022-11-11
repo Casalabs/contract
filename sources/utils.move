@@ -44,6 +44,15 @@ module suino::utils{
         let result = (amount  * fee_percent) / (fee_scaling as u128);
         (result as u64)
     }
+    public fun vector_combine(vector1:vector<u8>,vector2:vector<u8>):vector<u8>{
+        loop{
+            if (vector::is_empty(&vector2)){
+                break
+            };
+            vector::push_back(&mut vector1,vector::pop_back(&mut vector2));
+        };
+        vector1
+    }
 
     #[test] fun calculate_fee_int_test(){
         let amount = calculuate_fee_int(1000,3);

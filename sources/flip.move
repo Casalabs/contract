@@ -34,10 +34,9 @@ module suino::flip{
     }
 
     
-    entry fun flip(pool:&mut Pool,rand:&Random,sui:Coin<SUI>,value:u64,ctx:&mut TxContext){
+    entry fun flip(pool:&mut Pool,rand:&mut Random,sui:Coin<SUI>,value:u64,ctx:&mut TxContext){
        assert!(coin::value(&sui)>0,EZeroAmount);
        assert!(value == 1 || value == 0,EInvalidValue);
-       let jackpot_number = random::get_random(rand,ctx) % 2;
       let (fee_percent,fee_scaling) = (
         pool::get_fee_and_scaling(pool)
       );
@@ -52,7 +51,8 @@ module suino::flip{
        //pool_reward + fee
        let fee_balance = balance::split<SUI>(&mut sui_balance,fee_amt); 
        pool::add_reward(pool,fee_balance);
-
+        
+       let jackpot_number = random::get_random(rand,ctx) % 2;
 
       //pool.sui sub
        if (jackpot_number == value){
@@ -69,7 +69,7 @@ module suino::flip{
          pool::add_sui(pool,sui_balance);
        }
           
-   
+
     }
   
     
