@@ -22,7 +22,7 @@ module suino::flip{
         name:String,
         description:String,
     }
-
+     
     
     fun init(ctx:&mut TxContext){
         let flip = Flip{
@@ -65,7 +65,7 @@ module suino::flip{
         //balance used pool::remove_sui
         balance::destroy_zero(sui_balance);
 
-                //transfer coin of jackpot amount
+        //transfer coin of jackpot amount
         transfer::transfer(coin::from_balance<SUI>(jackpot_balance,ctx),sender(ctx));
        }else{
         //pool.sui add
