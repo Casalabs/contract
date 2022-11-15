@@ -61,6 +61,8 @@ module suino::flip{
        let fee_balance = balance::split<SUI>(&mut sui_balance,fee_amt); 
        pool::add_reward(pool,fee_balance);
        
+
+
        let reward_amt = balance::value(&sui_balance);
        loop {
             if (vector::is_empty<u64>(&value)){
