@@ -16,7 +16,7 @@ module suino::utils{
             result
         }
 
-    public fun calculuate_fee_int(amount:u64,fee_percent:u64):u64{
+    public fun calculuate_fee_int(amount:u64,fee_percent:u8):u64{
         let (amount,fee_percent) = ((amount as u128),(fee_percent as u128));
         let fee_amount = (amount * fee_percent) / 100;
         
@@ -24,7 +24,7 @@ module suino::utils{
     }
  
 
-    public fun calculate_fee_decimal(amount:u64,fee_percent:u64,fee_scaling:u64) :u64{
+    public fun calculate_fee_decimal(amount:u64,fee_percent:u8,fee_scaling:u64) :u64{
         // example 0.03 = 3/10000
         //if amount is smaller than 10000, fee is 300
         if (amount == 0 ){
@@ -53,9 +53,6 @@ module suino::utils{
         ecdsa::keccak256(&data)
     }
     
-  
 
-
- 
 }
  
