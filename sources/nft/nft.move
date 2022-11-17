@@ -7,12 +7,23 @@ module suino::nft{
     use std::string::{Self,String};
     use sui::object::{Self,ID,UID};
     use sui::event;
-        /// An example NFT that can be minted by anybody
+    use sui::dynamic_field;
+    use sui::coin::{Self,Coin};
+    use suino::utils;
+
+       // For when amount paid does not match the expected.
+    const EAmountIncorrect: u64 = 0;
+
+    // For when someone tries to delist without ownership.
+    const ENotOwner: u64 = 1;
+    
+    
     struct SuinoNFT has key, store {
         id: UID,
         /// Name for the token
         name: String,
         /// Description of the token
+        token_id:u64,
         description:String,
         /// URL for the token
         url: Url,
@@ -21,7 +32,9 @@ module suino::nft{
     struct SuinoNFTState has key{
         id:UID,
         owner:address,
+        
         holder:VecMap<ID,address>,
+        fee:u8,
     }
 
     struct MintNFTEvent has copy, drop {
@@ -33,14 +46,38 @@ module suino::nft{
         name: String,
     }
 
+    //marketplace
+    struct Marketplace has key {
+        id: UID,
+    }
+
+    
+    /// A single listing which contains the listed item and its price in [`Coin<C>`].
+    struct Listing<phantom C> has store {
+        item: SuinoNFT,
+        ask: u64, // Coin<C>
+        owner: address,
+    }
+
+    //depoly share object marketplace and state
     fun init(ctx:&mut TxContext){
-        let share_object = SuinoNFTState{
+        let state = SuinoNFTState{
             id:object::new(ctx),
             owner:tx_context::sender(ctx),
+            
             holder:vec_map::empty<ID,address>(),
+            fee:5,
         };
-        transfer::share_object(share_object);
+       
+        let marketplace = Marketplace { 
+            id:object::new(ctx),
+         };
+        transfer::share_object(marketplace);
+        transfer::share_object(state);
     }
+
+    //-------Entry---------
+
 
 
     public entry fun mint(
@@ -56,6 +93,7 @@ module suino::nft{
         let nft = SuinoNFT {
             id,
             name: string::utf8(name),
+            token_id:total_supply(state) + 1,
             description: string::utf8(description),
             url: url::new_unsafe_from_bytes(url)
         };
@@ -70,25 +108,95 @@ module suino::nft{
         transfer::transfer(nft, sender);
     }
 
-    // /// Update the `description` of `nft` to `new_description`
-    // public entry fun update_description(
-    //     nft: &mut SuinoNFT,
-    //     new_description: vector<u8>,
-    //     _: &mut TxContext
-    // ) {
-    //     nft.description = string::utf8(new_description)
-    // }
-
     public entry fun transfer(
         state:&mut SuinoNFTState,
         nft:SuinoNFT,
         recipent:address,
-        ctx:&mut TxContext){
+        
+       ){
         let nft_id = object::id(&nft);
         
-        set_state_owner(state,nft_id,tx_context::sender(ctx));
+        set_state_owner(state,nft_id,recipent);
         transfer::transfer(nft,recipent);
     }
+
+    //Market place
+       /// List an item at the Marketplace.
+    public entry fun list<C>(
+        marketplace: &mut Marketplace,
+        item: SuinoNFT,
+        ask: u64,
+        ctx: &mut TxContext
+    ) {
+        let item_id = object::id(&item);
+        let listing = Listing<C> {
+            item,
+            ask,
+            owner: tx_context::sender(ctx),
+        };
+        dynamic_field::add(&mut marketplace.id, item_id, listing);
+    }
+
+        /// Call [`delist`] and transfer item to the sender.
+    public entry fun delist_and_take<C>(
+        marketplace: &mut Marketplace,
+        item_id: ID,
+        ctx: &mut TxContext
+    ) {
+        let item = delist<C>(marketplace, item_id, ctx);
+        transfer::transfer(item, tx_context::sender(ctx));
+    }
+
+    public fun delist<C>(
+        marketplace: &mut Marketplace,
+        item_id: ID,
+        ctx: &mut TxContext
+    ): SuinoNFT {
+        let Listing<C> { item, ask: _, owner } =
+        dynamic_field::remove(&mut marketplace.id, item_id);
+
+        assert!(tx_context::sender(ctx) == owner, ENotOwner);
+
+        item
+    }
+
+
+    /// Call [`buy`] and transfer item to the sender.
+    public entry fun buy_and_take<C>(
+        marketplace: &mut Marketplace,
+        state:&mut SuinoNFTState,
+        item_id: ID,
+        paid: Coin<C>,
+        ctx: &mut TxContext
+    ) {
+        let sender = tx_context::sender(ctx);
+        //change state.holders
+        set_state_owner(state,item_id,sender);
+        //paid : 5% -> owner address
+        let paid_amt = coin::value(&paid);
+        let fee_amt = utils::calculuate_fee_int(paid_amt,get_fee(state));
+        let paid_coin = coin::split(&mut paid,fee_amt,ctx);
+        
+        transfer::transfer(paid_coin,get_owner(state));
+        transfer::transfer(buy<C>(marketplace, item_id, paid), tx_context::sender(ctx))
+    }
+        /// Purchase an item using a known Listing. Payment is done in Coin<C>.
+    /// Amount paid must match the requested amount. If conditions are met,
+    /// owner of the item gets the payment and buyer receives their item.
+    public fun buy<C>(
+        marketplace: &mut Marketplace,
+        item_id: ID,
+        paid: Coin<C>,
+    ): SuinoNFT {
+        let Listing<C> { item, ask, owner } =
+            dynamic_field::remove(&mut marketplace.id, item_id);
+        assert!(ask == coin::value(&paid), EAmountIncorrect);
+
+        transfer::transfer(paid, owner);
+ 
+        item
+    }
+
 
 
     /// Get the NFT's `name`
@@ -116,27 +224,32 @@ module suino::nft{
         state.owner
     }
     public fun get_holder(state:&SuinoNFTState,id:&ID):address{
-        let holders = state.holder;
-        let result = vec_map::get(&holders,id);
-        *result
+        let holder_point = vec_map::get(&state.holder,id);
+        *holder_point
     }
-    public fun holder_count(state:&SuinoNFTState):u64{
+    public fun get_fee(state:&SuinoNFTState):u8{
+        state.fee
+    }
+    public fun total_supply(state:&SuinoNFTState):u64{
         vec_map::size(&state.holder)
     }
+
+    
     
     #[test_only]
     public fun init_for_testing(ctx:&mut TxContext){
         init(ctx);
     }
     #[test_only]
-    public fun create_nft(ctx:&mut TxContext):SuinoNFT{
+    public fun test_create_nft(ctx:&mut TxContext){
       let nft = SuinoNFT{
         id:object::new(ctx),
         name:string::utf8(b"suino") ,
+        token_id:1,
         description:string::utf8(b"suino"),
         url:url::new_unsafe_from_bytes(b"suino")
       };
-      nft
+      transfer::transfer(nft,tx_context::sender(ctx));
     }
 }
 
