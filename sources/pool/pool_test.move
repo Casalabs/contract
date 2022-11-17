@@ -5,7 +5,7 @@ module suino::pool_test{
     
     use sui::balance::{Self};
     use sui::sui::SUI;
-   
+    use sui::coin::{Self,Coin};
    #[test] fun test_pool(){
         let owner = @0xC0FFEE;
         let user = @0xA1;
@@ -42,7 +42,23 @@ module suino::pool_test{
             //reward test
             test::return_shared(pool);
         };
-
+        //withdraw
+        next_tx(scenario,owner);
+        {
+            let pool = test::take_shared<Pool>(scenario);
+            pool::withdraw(&mut pool,900000,ctx(scenario));
+            test::return_shared(pool);
+        };
+        
+        //coin balance check
+        next_tx(scenario,owner);
+        {
+            let sui = test::take_from_sender<Coin<SUI>>(scenario);
+            let test_sui = coin::mint_for_testing<SUI>(900000,ctx(scenario));
+            assert!(coin::value(&sui) == coin::value(&test_sui),0);
+            coin::destroy_for_testing(test_sui);
+            test::return_to_sender(scenario,sui);
+        };
       
 
         test::end(scenario_val);
