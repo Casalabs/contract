@@ -1,7 +1,7 @@
 module suino::nft{
 
     use sui::url::{Self,Url};
-    use sui::tx_context::{Self,TxContext};
+    use sui::tx_context::{Self,TxContext,sender};
     use sui::vec_map::{Self,VecMap};
     use sui::transfer;
     use std::string::{Self,String};
@@ -32,7 +32,6 @@ module suino::nft{
     struct SuinoNFTState has key{
         id:UID,
         owner:address,
-        
         holder:VecMap<ID,address>,
         fee:u8,
     }
@@ -116,7 +115,7 @@ module suino::nft{
        ){
         let nft_id = object::id(&nft);
         
-        set_state_owner(state,nft_id,recipent);
+        set_state_nft_holder(state,nft_id,recipent);
         transfer::transfer(nft,recipent);
     }
 
@@ -171,7 +170,7 @@ module suino::nft{
     ) {
         let sender = tx_context::sender(ctx);
         //change state.holders
-        set_state_owner(state,item_id,sender);
+        set_state_nft_holder(state,item_id,sender);
         //paid : 5% -> owner address
         let paid_amt = coin::value(&paid);
         let fee_amt = utils::calculuate_fee_int(paid_amt,get_fee(state));
@@ -214,12 +213,19 @@ module suino::nft{
         &nft.url
     }
 
-    public fun set_state_owner(state:&mut SuinoNFTState,nft_id:ID,recipent:address){
+    public fun set_state_nft_holder(state:&mut SuinoNFTState,nft_id:ID,recipent:address){
         vec_map::remove<ID,address>(&mut state.holder,&nft_id);
         vec_map::insert<ID,address>(&mut state.holder,nft_id,recipent);
     }
 
     //--------SuinoNFTState-------------
+    entry fun set_owner(state:&mut SuinoNFTState,new_owner:address,ctx:&mut TxContext){
+        //only owner
+        assert!(sender(ctx) == get_owner(state),0);
+
+        state.owner = new_owner;
+    }
+
     public fun get_owner(state:&SuinoNFTState):address{
         state.owner
     }
@@ -234,22 +240,60 @@ module suino::nft{
         vec_map::size(&state.holder)
     }
 
+    public fun get_holders(state:&SuinoNFTState):VecMap<ID,address>{
+        state.holder
+    }
+
     
     
     #[test_only]
     public fun init_for_testing(ctx:&mut TxContext){
-        init(ctx);
+        let state = SuinoNFTState{
+            id:object::new(ctx),
+            owner:tx_context::sender(ctx),
+            
+            holder:vec_map::empty<ID,address>(),
+            fee:5,
+        };
+       
+        let marketplace = Marketplace { 
+            id:object::new(ctx),
+         };
+        transfer::share_object(marketplace);
+        transfer::share_object(state);
     }
     #[test_only]
-    public fun test_create_nft(ctx:&mut TxContext){
+    public fun test_mint_nft(state:&mut SuinoNFTState,recipent:address,ctx:&mut TxContext){
+      let id = object::new(ctx);
       let nft = SuinoNFT{
-        id:object::new(ctx),
+        id,
         name:string::utf8(b"suino") ,
         token_id:1,
         description:string::utf8(b"suino"),
         url:url::new_unsafe_from_bytes(b"suino")
       };
-      transfer::transfer(nft,tx_context::sender(ctx));
+      vec_map::insert(&mut state.holder,object::uid_to_inner(&nft.id),recipent);
+
+      transfer::transfer(nft,recipent);
     }
+    // #[test_only]
+    // public fun test_create_state(
+
+    //     user1:address,
+    //     user2:address,
+    //     ctx:&mut TxContext
+        
+    //     ):SuinoNFTState{
+       
+        
+    //     let state = SuinoNFTState{
+    //         id:object::new(ctx),
+    //         owner:tx_context::sender(ctx),
+            
+    //         holder,
+    //         fee:5,
+    //     };
+    //     state
+    // }
 }
 
