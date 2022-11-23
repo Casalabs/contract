@@ -11,7 +11,7 @@ module suino::utils_test{
     use sui::test_scenario::{Self as test,ctx};
     use sui::tx_context;
     
-
+    
     #[test]
     fun u64_from_vector_test(){
        let user = @0xA1;

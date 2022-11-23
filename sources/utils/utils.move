@@ -2,7 +2,7 @@ module suino::utils{
 
   use std::vector;
   use sui::ecdsa;
-//   use std::debug;  
+
   
     public fun u64_from_vector(v:vector<u8>,epoch:u64):u64{
             let result = (epoch as u128)  ;
@@ -21,7 +21,7 @@ module suino::utils{
                 
             };
             (result as u64)
-        }
+    }
 
     public fun calculuate_fee_int(amount:u64,fee_percent:u8):u64{
         let (amount,fee_percent) = ((amount as u128),(fee_percent as u128));

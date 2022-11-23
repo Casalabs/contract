@@ -41,7 +41,6 @@ module suino::flip{
         pool:&mut Pool,
         rand:&mut Random,
         sui:Coin<SUI>,
-        
         value:vector<u64>, 
         ctx:&mut TxContext){
        assert!(coin::value(&sui)>0,EZeroAmount);
@@ -66,11 +65,9 @@ module suino::flip{
        
 
         let reward_amt = balance::value(&sui_balance);
-        loop {
-            if (vector::is_empty<u64>(&value)){
-                break
-            };
+        while(vector::is_empty<u64>(&value)) {
             
+        
             let jackpot_number = random::get_random_int(rand,ctx) % 2;
             let compare_number = vector::pop_back(&mut value);
             assert!(compare_number == 1 || compare_number == 2,EInvalidValue);
@@ -86,38 +83,21 @@ module suino::flip{
          pool::add_pool(pool,sui_balance);
          return
        };
-      
+        
+        pool::add_pool(pool,sui_balance);
+
         let jackpot_balance = pool::remove_pool(pool,reward_amt); //balance<SUI>
         
-        //balance used pool::remove_sui
-        balance::destroy_zero(sui_balance);
+        // balance::destroy_zero(sui_balance);
       
         //transfer coin of jackpot amount
         transfer::transfer(coin::from_balance<SUI>(jackpot_balance,ctx),sender(ctx));
     }
        
-       //change random_number
-    //    random::game_after_set_random(rand,ctx);
-       
-      
-      //pool.sui sub
-    //    if (jackpot_number == value){
-    //     let amount = balance::value(&sui_balance) *2;
-    //     let jackpot_balance = pool::remove_sui(pool,amount); //balance<SUI>
-        
-    //     //balance used pool::remove_sui
-    //     balance::destroy_zero(sui_balance);
-    //     //transfer coin of jackpot amount
-    //     transfer::transfer(coin::from_balance<SUI>(jackpot_balance,ctx),sender(ctx));
-    //    }else{
-    //     //pool.sui add
-    //      pool::add_sui(pool,sui_balance);
-    //    }
-    
     
     fun set_random(rand:&mut Random,ctx:&mut TxContext){
          random::game_after_set_random(rand,ctx);
     }
-    //need flip 2,3,4 make
+    
 }
 

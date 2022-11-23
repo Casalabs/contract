@@ -26,8 +26,11 @@ module suino::player{
     public fun count_up(player:&mut Player){
         player.count = player.count + 1
     }
+    public fun count_down(player:&mut Player){
+        player.count = player.count - 1
+    }
 
-    public fun count_sub(player:&mut Player,amount:u64){
+    public fun count_sub_amount(player:&mut Player,amount:u64){
         assert!(player.count >= amount,EInvalidAmount);
         player.count = player.count - amount;
     }
@@ -60,11 +63,10 @@ module suino::player_test{
             test::return_to_sender(scenario,player);
         };
 
-
         next_tx(scenario,owner);
         {   
             let player = test::take_from_sender<Player>(scenario);
-            player::count_sub(&mut player,1);
+            player::count_sub_amount(&mut player,1);
             
             assert!(player::get_count(&player) == 0, 0 );
             test::return_to_sender(scenario,player);
