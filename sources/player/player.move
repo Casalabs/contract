@@ -23,11 +23,11 @@ module suino::player{
         object::delete(id);
     }
 
-    public fun player_count_up(player:&mut Player){
+    public fun count_up(player:&mut Player){
         player.count = player.count + 1
     }
 
-    public fun player_count_sub(player:&mut Player,amount:u64){
+    public fun count_sub(player:&mut Player,amount:u64){
         assert!(player.count >= amount,EInvalidAmount);
         player.count = player.count - amount;
     }

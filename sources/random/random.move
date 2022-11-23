@@ -22,7 +22,7 @@ module suino::random{
         };
         transfer::share_object(random);
     }
-
+    
     public entry fun set_random(r:&mut Random,salt:vector<u8>,ctx:&mut TxContext){
        
         // r.lastMaker = sender(ctx);
@@ -36,7 +36,7 @@ module suino::random{
         r.random_hash = random_hash;
     }
 
-//    //player makes random hash after gaming
+    //player makes random hash after gaming
     public fun game_after_set_random(random:&mut Random,ctx:&mut TxContext){
         // let new_object = object::new(ctx);
         let object_hash = ctx_hash(ctx);
@@ -66,9 +66,18 @@ module suino::random{
         random.random_hash
     }
 
+
+   //-------------TEST ONLY-----------------------
     #[test_only]
     public fun test_init(ctx:&mut TxContext){
-        init(ctx)
+        let vec = b"casino";
+        let random_hash = ecdsa::keccak256(&vec);
+
+        let random = Random{
+            id:object::new(ctx),
+            random_hash
+        };
+        transfer::share_object(random);
     }
     #[test_only]
     public fun test_random(ctx:&mut TxContext):Random{
@@ -79,6 +88,7 @@ module suino::random{
         };
         random
     }
+    
     #[test_only]
     public fun destroy_random(random:Random){
         let Random {id,random_hash:_ } = random;

@@ -46,26 +46,27 @@ module suino::flip{
         ctx:&mut TxContext){
        assert!(coin::value(&sui)>0,EZeroAmount);
        assert!(vector::length(&value) > 0 && vector::length(&value) < 4,EInvalidValue);
-       
+        //player object count_up
+        player::count_up(player);
        //reverse because vector only pop_back
-      vector::reverse(&mut value);
-   
-      let (fee_percent,fee_scaling) = pool::get_fee_and_scaling(pool);
+        vector::reverse(&mut value);
+    
+        let (fee_percent,fee_scaling) = pool::get_fee_and_scaling(pool);
      
        //u64
-       let fee_amt = utils::calculate_fee_decimal(coin::value(&sui),fee_percent,fee_scaling);
+        let fee_amt = utils::calculate_fee_decimal(coin::value(&sui),fee_percent,fee_scaling);
         
 
         //sui_balance = sui_balance - fee
-       let sui_balance = coin::into_balance<SUI>(sui);
+        let sui_balance = coin::into_balance<SUI>(sui);
        
        //pool_reward + fee
-       let fee_balance = balance::split<SUI>(&mut sui_balance,fee_amt); 
-       pool::add_reward(pool,fee_balance);
+        let fee_balance = balance::split<SUI>(&mut sui_balance,fee_amt); 
+        pool::add_reward(pool,fee_balance);
        
 
-       let reward_amt = balance::value(&sui_balance);
-       loop {
+        let reward_amt = balance::value(&sui_balance);
+        loop {
             if (vector::is_empty<u64>(&value)){
                 break
             };
@@ -90,8 +91,8 @@ module suino::flip{
         
         //balance used pool::remove_sui
         balance::destroy_zero(sui_balance);
+      
         //transfer coin of jackpot amount
-        player::count_up(player);
         transfer::transfer(coin::from_balance<SUI>(jackpot_balance,ctx),sender(ctx));
     }
        
