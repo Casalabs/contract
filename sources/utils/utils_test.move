@@ -19,9 +19,9 @@ module suino::utils_test{
        let scenario = &mut scenario_val;
        let ctx = ctx(scenario);
        let epoch = tx_context::epoch(ctx);
-       let vec:vector<u8> = b"hello";
+       let vec:vector<u8> = b"hello"; // //0x68656c6c6f
        let result = u64_from_vector(vec,epoch);
-       assert!(result == 532,0);
+       assert!(result == 1221800,0);
        test::end(scenario_val);
     }
 

@@ -5,15 +5,22 @@ module suino::utils{
 //   use std::debug;  
   
     public fun u64_from_vector(v:vector<u8>,epoch:u64):u64{
-            let result = epoch ;
-        
+            let result = (epoch as u128)  ;
+            let count = 0;
             loop{
                 if (vector::is_empty(&v)){
                     break
                 };
-                result = result + (vector::pop_back(&mut v) as u64) ;
+                if (count == 0){
+                    result = result + (vector::pop_back(&mut v) as u128);
+                    count = 1;
+                }else{
+                    result = result * (vector::pop_back(&mut v) as u128);
+                    count = 0;
+                }
+                
             };
-            result
+            (result as u64)
         }
 
     public fun calculuate_fee_int(amount:u64,fee_percent:u8):u64{
