@@ -10,6 +10,7 @@ module suino::flip{
     use sui::sui::SUI;
     use suino::random::{Self,Random};
     use suino::pool::{Self,Pool};
+    use suino::player::{Self,Player};
     use suino::utils;
 
     const EZeroAmount:u64 = 0;
@@ -36,6 +37,7 @@ module suino::flip{
     
     entry fun flip(
         _:&Flip,
+        player:&mut Player,
         pool:&mut Pool,
         rand:&mut Random,
         sui:Coin<SUI>,
@@ -43,7 +45,7 @@ module suino::flip{
         value:vector<u64>, 
         ctx:&mut TxContext){
        assert!(coin::value(&sui)>0,EZeroAmount);
-       assert!(vector::length(&value) != 0 && vector::length(&value) < 4,EInvalidValue);
+       assert!(vector::length(&value) > 0 && vector::length(&value) < 4,EInvalidValue);
        
        //reverse because vector only pop_back
       vector::reverse(&mut value);
@@ -80,15 +82,16 @@ module suino::flip{
         };
        
        if (reward_amt == 0){
-         pool::add_sui(pool,sui_balance);
+         pool::add_pool(pool,sui_balance);
          return
        };
       
-        let jackpot_balance = pool::remove_sui(pool,reward_amt); //balance<SUI>
+        let jackpot_balance = pool::remove_pool(pool,reward_amt); //balance<SUI>
         
         //balance used pool::remove_sui
         balance::destroy_zero(sui_balance);
         //transfer coin of jackpot amount
+        player::count_up(player);
         transfer::transfer(coin::from_balance<SUI>(jackpot_balance,ctx),sender(ctx));
     }
        
