@@ -1,7 +1,7 @@
 #[test_only]
 module suino::utils_test{
     use suino::utils::{
-        calculuate_fee_int,
+        calculate_percent,
         calculate_fee_decimal,
         vector_combine,
         keccak256,
@@ -27,13 +27,13 @@ module suino::utils_test{
 
     #[test]
     fun calculate_fee_int_test(){
-        let amount = calculuate_fee_int(1000,3);
+        let amount = calculate_percent(1000,3);
         assert!(amount == 30,0);
-        let amount = calculuate_fee_int(25000,3);
+        let amount = calculate_percent(25000,3);
         assert!(amount == 750,0);
-        let amount = calculuate_fee_int(0,30);
+        let amount = calculate_percent(0,30);
         assert!(amount == 0,0);
-        let amount = calculuate_fee_int(49,7);
+        let amount = calculate_percent(49,7);
         assert!(amount == 3,0);
     }
 

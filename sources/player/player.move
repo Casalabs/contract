@@ -27,7 +27,7 @@ module suino::player{
         player.count = player.count + 1
     }
     public fun count_down(player:&mut Player){
-        player.count = player.count - 1
+        player.count = player.count - 1;
     }
 
     public fun count_sub_amount(player:&mut Player,amount:u64){

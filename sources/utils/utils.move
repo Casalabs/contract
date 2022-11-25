@@ -23,13 +23,13 @@ module suino::utils{
             (result as u64)
     }
 
-    public fun calculuate_fee_int(amount:u64,fee_percent:u8):u64{
+    public fun calculate_percent(amount:u64,fee_percent:u8):u64{
         let (amount,fee_percent) = ((amount as u128),(fee_percent as u128));
         let fee_amount = (amount * fee_percent) / 100;
         
         (fee_amount as u64)
     }
- 
+    
 
     public fun calculate_fee_decimal(amount:u64,fee_percent:u8,fee_scaling:u64) :u64{
         // example 0.03 = 3/10000

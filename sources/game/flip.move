@@ -11,7 +11,10 @@ module suino::flip{
     use suino::random::{Self,Random};
     use suino::pool::{Self,Pool};
     use suino::player::{Self,Player};
-    use suino::utils;
+    use suino::lottery::{Self,Lottery};
+    use suino::utils::{
+        calculate_percent
+    };
 
     const EZeroAmount:u64 = 0;
     const EInvalidValue:u64 = 1;
@@ -40,34 +43,46 @@ module suino::flip{
         player:&mut Player,
         pool:&mut Pool,
         rand:&mut Random,
+        lottery:&mut Lottery,
         sui:Coin<SUI>,
         value:vector<u64>, 
-        ctx:&mut TxContext){
-       assert!(coin::value(&sui)>0,EZeroAmount);
-       assert!(vector::length(&value) > 0 && vector::length(&value) < 4,EInvalidValue);
-        //player object count_up
-        player::count_up(player);
-       //reverse because vector only pop_back
+        ctx:&mut TxContext)
+    {
+        assert!(coin::value(&sui)>0,EZeroAmount);
+        assert!(vector::length(&value) > 0 && vector::length(&value) < 4,EInvalidValue);
+
+        //reverse because vector only pop_back
         vector::reverse(&mut value);
-    
-        let (fee_percent,fee_scaling) = pool::get_fee_and_scaling(pool);
-     
-       //u64
-        let fee_amt = utils::calculate_fee_decimal(coin::value(&sui),fee_percent,fee_scaling);
+
+        let sui = coin::into_balance<SUI>(sui);
+        let sui_amount = balance::value(&sui);
+          //reward -> nft holder
+        {
+            let fee_percent = pool::get_fee_percent(pool);
+            let fee_amt = calculate_percent(sui_amount,fee_percent);
+            sui_amount = sui_amount - fee_amt;
+            //pool_reward + fee
+            let fee = balance::split<SUI>(&mut sui,fee_amt); 
+            pool::add_reward(pool,fee);
+            pool::add_pool(pool,sui);
+        };
         
+        
+        //player object count_up
+        {
+            player::count_up(player);
+        };
+        
+      
 
-        //sui_balance = sui_balance - fee
-        let sui_balance = coin::into_balance<SUI>(sui);
-       
-       //pool_reward + fee
-        let fee_balance = balance::split<SUI>(&mut sui_balance,fee_amt); 
-        pool::add_reward(pool,fee_balance);
+        // sui -> pool;
+        
+   
        
 
-        let reward_amt = balance::value(&sui_balance);
+        //calculate jackpot amt
+        let reward_amt = sui_amount;
         while(vector::is_empty<u64>(&value)) {
-            
-        
             let jackpot_number = random::get_random_int(rand,ctx) % 2;
             let compare_number = vector::pop_back(&mut value);
             assert!(compare_number == 1 || compare_number == 2,EInvalidValue);
@@ -78,20 +93,18 @@ module suino::flip{
             reward_amt = reward_amt * 2;
             set_random(rand,ctx);
         };
-       
-       if (reward_amt == 0){
-         pool::add_pool(pool,sui_balance);
-         return
-       };
-        
-        pool::add_pool(pool,sui_balance);
 
-        let jackpot_balance = pool::remove_pool(pool,reward_amt); //balance<SUI>
+        //lottery prize up!
+        if (reward_amt == 0){
+            let lottery_percent = pool::get_pool_lottery_percent(pool);
+            lottery::prize_up(lottery,calculate_percent(sui_amount,lottery_percent));
+            return
+        };
         
-        // balance::destroy_zero(sui_balance);
-      
+        let jackpot = pool::remove_pool(pool,reward_amt); //balance<SUI>
+        
         //transfer coin of jackpot amount
-        transfer::transfer(coin::from_balance<SUI>(jackpot_balance,ctx),sender(ctx));
+        transfer::transfer(coin::from_balance<SUI>(jackpot,ctx),sender(ctx));
     }
        
     

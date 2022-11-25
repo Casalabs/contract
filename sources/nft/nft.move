@@ -9,7 +9,9 @@ module suino::nft{
     use sui::event;
     use sui::dynamic_field;
     use sui::coin::{Self,Coin};
-    use suino::utils;
+    use suino::utils::{
+        calculate_percent
+    };
 
        // For when amount paid does not match the expected.
     const EAmountIncorrect: u64 = 0;
@@ -172,11 +174,11 @@ module suino::nft{
         //change state.holders
         set_state_nft_holder(state,item_id,sender);
         //paid : 5% -> owner address
-        let paid_amt = coin::value(&paid);
-        let fee_amt = utils::calculuate_fee_int(paid_amt,get_fee(state));
-        let paid_coin = coin::split(&mut paid,fee_amt,ctx);
+
+        let fee_amt = calculate_percent(coin::value(&paid),get_fee(state));
+        let fee_coin = coin::split(&mut paid,fee_amt,ctx);
         
-        transfer::transfer(paid_coin,get_owner(state));
+        transfer::transfer(fee_coin,get_owner(state));
         transfer::transfer(buy<C>(marketplace, item_id, paid), tx_context::sender(ctx))
     }
         /// Purchase an item using a known Listing. Payment is done in Coin<C>.

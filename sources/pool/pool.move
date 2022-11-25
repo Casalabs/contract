@@ -34,6 +34,7 @@ module suino::pool{
         fee_percent:u8,
         fee_scaling:u64,
         reward:Balance<SUI>,
+        lottery_percent:u8,
         owners:u64,
         sign:VecSet<address>,
         lock:bool,
@@ -52,6 +53,7 @@ module suino::pool{
             fee_percent:5,
             fee_scaling:10000, //fixed
             reward:balance::zero<SUI>(),
+            lottery_percent:20,
             owners:1,
             sign:set::empty(),
             lock:true,
@@ -64,12 +66,7 @@ module suino::pool{
         transfer::share_object(pool)
     }
 
-    //-------Check-------------
-    // fun check_owner(pool:&Pool,ctx:&mut TxContext){
-    //     let sender = sender(ctx);
-    //     let result = set::contains(&pool.owners,&sender);
-    //     assert!(result == true,EOnlyOwner);
-    // }
+
     
     fun check_lock(pool:&Pool){
         assert!(pool.lock == false,ELock)
@@ -134,6 +131,9 @@ module suino::pool{
         pool.fee_percent = percent;
     }
 
+    entry fun set_lottery_percent(_:&Ownership,pool:&mut Pool,percent:u8){
+        pool.lottery_percent = percent;
+    }
 
     public(friend) entry fun reward_share(_:&Ownership,pool:&mut Pool,nft:&SuinoNFTState,ctx:&mut TxContext){
         
@@ -174,7 +174,7 @@ module suino::pool{
    public fun remove_reward(pool:&mut Pool,amount:u64):Balance<SUI>{
         balance::split<SUI>(&mut pool.reward,amount)
    }
-  
+
 
     //pool.reward share
     //public fun share_reward(pool:&mut Pool){}
@@ -201,7 +201,7 @@ module suino::pool{
         balance::value(&pool.reward)
     }
 
-    public fun get_owner_count(pool:&Pool):u64{
+    public fun get_owners(pool:&Pool):u64{
         pool.owners
     }
     public fun get_pool_sign(pool:&Pool):VecSet<address>{
@@ -211,6 +211,9 @@ module suino::pool{
         pool.lock
     }
 
+    public fun get_pool_lottery_percent(pool:&Pool):u8{
+        pool.lottery_percent
+    }
 
    
 
@@ -223,6 +226,7 @@ module suino::pool{
             fee_percent:5,
             fee_scaling:10000, //fixed
             reward:balance::zero<SUI>(),
+            lottery_percent:20,
             owners:1,
             sign:set::empty(),
             lock:true,
@@ -248,6 +252,7 @@ module suino::pool{
             sui:balance::create_for_testing<SUI>(sui_balance),
             fee_percent,
             fee_scaling, //modified
+            lottery_percent:20,
             reward:balance::create_for_testing<SUI>(reward_balance),
             owners:0,
             sign,
@@ -354,7 +359,7 @@ module suino::pool_test{
             let pool = test::take_shared<Pool>(scenario);
             let ownership = test::take_from_sender<Ownership>(scenario);
             pool::add_owner(&ownership,&mut pool,owner2,ctx(scenario));
-            let owners = pool::get_owner_count(&pool);
+            let owners = pool::get_owners(&pool);
             assert!(owners== 2,0);
             test::return_to_sender(scenario,ownership);
             test::return_shared(pool);
