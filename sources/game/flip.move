@@ -89,8 +89,7 @@ module suino::flip{
 
         //lottery prize up!
         if (reward_amt == 0){
-            let lottery_percent = pool::get_pool_lottery_percent(pool);
-            lottery::prize_up(lottery,calculate_percent(sui_amount,lottery_percent));
+            lose_game_lottery_update(pool,lottery,sui_amount);
             return
         };
         
@@ -105,5 +104,12 @@ module suino::flip{
          random::game_after_set_random(rand,ctx);
     }
     
+    fun lose_game_lottery_update(pool:&Pool,lottery:&mut Lottery,amount:u64){
+         let lottery_percent = pool::get_pool_lottery_percent(pool);
+        lottery::prize_up(lottery,calculate_percent(amount,lottery_percent));
+    }
+
+    
+
 }
 
