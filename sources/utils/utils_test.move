@@ -14,6 +14,7 @@ module suino::utils_test{
     
     #[test]
     fun u64_from_vector_test(){
+    //    use std::debug;
        let user = @0xA1;
        let scenario_val = test::begin(user);
        let scenario = &mut scenario_val;
@@ -21,7 +22,8 @@ module suino::utils_test{
        let epoch = tx_context::epoch(ctx);
        let vec:vector<u8> = b"hello"; // //0x68656c6c6f
        let result = u64_from_vector(vec,epoch);
-       assert!(result == 1221800,0);
+    //    debug::print(&result);
+       assert!(result == 33131,0);
        test::end(scenario_val);
     }
 

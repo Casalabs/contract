@@ -5,21 +5,22 @@ module suino::utils{
 
   
     public fun u64_from_vector(v:vector<u8>,epoch:u64):u64{
-            let result = (epoch as u128)  ;
+            let result = epoch;
             let count = 0;
             loop{
                 if (vector::is_empty(&v)){
                     break
                 };
-                if (count == 0){
-                    result = result + (vector::pop_back(&mut v) as u128);
-                    count = 1;
-                }else{
-                    result = result * (vector::pop_back(&mut v) as u128);
+                if(count == 3){
+                    result = result * (vector::pop_back(&mut v) as u64) ;
                     count = 0;
+                }else{
+                    result = result + (vector::pop_back(&mut v) as u64);
+                    count = count + 1;
                 }
-                
-            };
+               
+               
+            }; 
             (result as u64)
     }
 

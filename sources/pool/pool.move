@@ -29,7 +29,7 @@ module suino::pool{
     
     struct Pool has key{
         id:UID,
-        sui:Balance<SUI>,
+        balance:Balance<SUI>,
         // lsp_supply:Supply<LSP>
         fee_percent:u8,
         fee_scaling:u64,
@@ -48,7 +48,7 @@ module suino::pool{
     fun init(ctx:&mut TxContext){
         let pool = Pool{
             id:object::new(ctx),
-            sui:balance::zero<SUI>(),
+            balance:balance::zero<SUI>(),
             
             fee_percent:5,
             fee_scaling:10000, //fixed
@@ -159,12 +159,12 @@ module suino::pool{
 
     //pool.sui join
    public fun add_pool(pool:&mut Pool,balance:Balance<SUI>){
-       balance::join(&mut pool.sui,balance);
+       balance::join(&mut pool.balance,balance);
    }
 
     // pool.sui remove 
    public fun remove_pool(pool:&mut Pool,amount:u64):Balance<SUI>{
-        balance::split<SUI>(&mut pool.sui,amount)
+        balance::split<SUI>(&mut pool.balance,amount)
    }
 
     //pool.reward add
@@ -183,7 +183,7 @@ module suino::pool{
 
    //----------state--------------
     public fun get_balance(pool:&Pool):u64{
-        balance::value(&pool.sui)
+        balance::value(&pool.balance)
     }
     public fun get_fee_and_scaling(pool:&Pool):(u8,u64){
         (pool.fee_percent,pool.fee_scaling)
@@ -221,7 +221,7 @@ module suino::pool{
     public fun init_for_testing(ctx:&mut TxContext){
         let pool = Pool{
             id:object::new(ctx),
-            sui:balance::zero<SUI>(),
+            balance:balance::zero<SUI>(),
             
             fee_percent:5,
             fee_scaling:10000, //fixed
@@ -240,25 +240,28 @@ module suino::pool{
     }
 
     #[test_only]
-    public fun create_test_pool(
+    public fun test_pool(
         fee_percent:u8,
         fee_scaling:u64,
         sui_balance:u64,
         reward_balance:u64,
-        sign:VecSet<address>,
-        ctx:&mut TxContext):Pool{
+        ctx:&mut TxContext){
         let pool = Pool{
             id:object::new(ctx),
-            sui:balance::create_for_testing<SUI>(sui_balance),
+            balance:balance::create_for_testing<SUI>(sui_balance),
             fee_percent,
             fee_scaling, //modified
             lottery_percent:20,
             reward:balance::create_for_testing<SUI>(reward_balance),
             owners:0,
-            sign,
+            sign:set::empty(),
             lock:true,
         };
-        pool
+        let ownership = Ownership{
+            id:object::new(ctx)
+        };
+        transfer::share_object(pool);
+        transfer::transfer(ownership,sender(ctx));
     }
     
 }

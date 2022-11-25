@@ -37,6 +37,16 @@ module suino::player{
     public fun get_count(player:&Player):u64{
         player.count
     }
+
+    
+    #[test_only]
+    public fun test_player(ctx:&mut TxContext,count:u64){
+        let player = Player{
+            id:object::new(ctx),
+            count,
+        };
+        transfer::transfer(player,sender(ctx));
+    }
 }
 
 #[test_only]

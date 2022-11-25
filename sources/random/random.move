@@ -99,20 +99,24 @@ module suino::random{
         transfer::share_object(random);
     }
     #[test_only]
-    public fun test_random(ctx:&mut TxContext):Random{
+    public fun test_random(hash:vector<u8>,ctx:&mut TxContext){
         
         let random = Random{
             id:object::new(ctx),
-            random_hash:b"casino",
+            random_hash:hash,
         };
-        random
+        transfer::share_object(random);
     }
+
+    
+    
     
     #[test_only]
     public fun destroy_random(random:Random){
         let Random {id,random_hash:_ } = random;
         object::delete(id);
     }
+
     
 }
 
