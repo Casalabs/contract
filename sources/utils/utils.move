@@ -25,6 +25,10 @@ module suino::utils{
     }
 
     public fun calculate_percent(amount:u64,fee_percent:u8):u64{
+        if (amount == 0 || (amount <= (fee_percent as u64)) ){
+            return 0
+        };
+        
         let (amount,fee_percent) = ((amount as u128),(fee_percent as u128));
         let fee_amount = (amount * fee_percent) / 100;
         
