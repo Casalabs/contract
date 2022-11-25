@@ -9,7 +9,7 @@ module suino::player{
 
     const EInvalidAmount:u64 = 0;
 
-    public entry fun create_player(ctx:&mut TxContext){
+    public entry fun create(ctx:&mut TxContext){
         let player = Player{
             id:object::new(ctx),
             count:0
@@ -18,7 +18,7 @@ module suino::player{
     }
 
 
-    public entry fun delete_player(player:Player){
+    public entry fun delete(player:Player){
         let Player{id,count : _} = player;
         object::delete(id);
     }
@@ -51,7 +51,7 @@ module suino::player_test{
 
         next_tx(scenario,owner);
         {
-            player::create_player(ctx(scenario));
+            player::create(ctx(scenario));
         };
 
         next_tx(scenario,owner);
