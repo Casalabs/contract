@@ -56,32 +56,25 @@ module suino::flip{
 
         let sui = coin::into_balance<SUI>(sui);
         let sui_amount = balance::value(&sui);
-          //reward -> nft holder
+          //reward -> nft holder , pool + sui
         {
             let fee_percent = pool::get_fee_percent(pool);
             let fee_amt = calculate_percent(sui_amount,fee_percent);
             sui_amount = sui_amount - fee_amt;
-            //pool_reward + fee
-            let fee = balance::split<SUI>(&mut sui,fee_amt); 
+            let fee = balance::split<SUI>(&mut sui,fee_amt);  //sui = sui - fee_amt
             pool::add_reward(pool,fee);
             pool::add_pool(pool,sui);
         };
         
         
         //player object count_up
-        {
-            player::count_up(player);
-        };
+        player::count_up(player);
         
-      
-
-        // sui -> pool;
         
-   
-       
 
         //calculate jackpot amt
-        let reward_amt = sui_amount;
+        let reward_amt = 0;
+        
         while(vector::is_empty<u64>(&value)) {
             let jackpot_number = random::get_random_int(rand,ctx) % 2;
             let compare_number = vector::pop_back(&mut value);
@@ -90,7 +83,7 @@ module suino::flip{
                     reward_amt = 0;
                     break
             };
-            reward_amt = reward_amt * 2;
+            reward_amt = sui_amount * 2;
             set_random(rand,ctx);
         };
 
