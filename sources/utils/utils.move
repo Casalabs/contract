@@ -36,20 +36,20 @@ module suino::utils{
     }
     
 
-    public fun calculate_fee_decimal(amount:u64,fee_percent:u8,fee_scaling:u64) :u64{
-        // example 0.03 = 3/10000
-        //if amount is smaller than 10000, fee is 300
-        if (amount == 0 ){
-            return 0
-        };
-        if (amount <= fee_scaling){
-            return 300
-        };
-        let (amount,fee_percent) = ((amount as u128),(fee_percent as u128));
+    // public fun calculate_fee_decimal(amount:u64,fee_percent:u8,fee_scaling:u64) :u64{
+    //     // example 0.03 = 3/10000
+    //     //if amount is smaller than 10000, fee is 300
+    //     if (amount == 0 ){
+    //         return 0
+    //     };
+    //     if (amount <= fee_scaling){
+    //         return 300
+    //     };
+    //     let (amount,fee_percent) = ((amount as u128),(fee_percent as u128));
 
-        let result = (amount  * fee_percent) / (fee_scaling as u128);
-        (result as u64)
-    }
+    //     let result = (amount  * fee_percent) / (fee_scaling as u128);
+    //     (result as u64)
+    // }
 
     public fun vector_combine(vector1:vector<u8>,vector2:vector<u8>):vector<u8>{
         loop{

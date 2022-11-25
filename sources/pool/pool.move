@@ -33,7 +33,7 @@ module suino::pool{
         // lsp_supply:Supply<LSP>
         fee_percent:u8,
         fee_scaling:u64,
-        reward:Balance<SUI>,
+        reward_pool:Balance<SUI>,
         lottery_percent:u8,
         owners:u64,
         sign:VecSet<address>,
@@ -52,7 +52,7 @@ module suino::pool{
             
             fee_percent:5,
             fee_scaling:10000, //fixed
-            reward:balance::zero<SUI>(),
+            reward_pool:balance::zero<SUI>(),
             lottery_percent:20,
             owners:1,
             sign:set::empty(),
@@ -141,13 +141,13 @@ module suino::pool{
         let holders_count = map::size(&holders);
         let reward_amount = get_reward(pool);
         assert!(holders_count < reward_amount ,EEnoughReward);
-        let reward = {
+        let reward_pool = {
             reward_amount / holders_count
         };
         while(!map::is_empty(&holders)){
             let (_,value) = map::pop(&mut holders);
             //append    
-            let reward_balance = remove_reward(pool,reward);
+            let reward_balance = remove_reward(pool,reward_pool);
             let reward_coin = coin::from_balance(reward_balance,ctx);
             transfer::transfer(reward_coin,value);
         };
@@ -167,16 +167,16 @@ module suino::pool{
         balance::split<SUI>(&mut pool.balance,amount)
    }
 
-    //pool.reward add
+    //pool.reward_pool add
    public fun add_reward(pool:&mut Pool,balance:Balance<SUI>){
-        balance::join(&mut pool.reward,balance);
+        balance::join(&mut pool.reward_pool,balance);
    }
    public fun remove_reward(pool:&mut Pool,amount:u64):Balance<SUI>{
-        balance::split<SUI>(&mut pool.reward,amount)
+        balance::split<SUI>(&mut pool.reward_pool,amount)
    }
 
 
-    //pool.reward share
+    //pool.reward_pool share
     //public fun share_reward(pool:&mut Pool){}
    
 
@@ -198,7 +198,7 @@ module suino::pool{
     }
 
     public fun get_reward(pool:&Pool):u64{
-        balance::value(&pool.reward)
+        balance::value(&pool.reward_pool)
     }
 
     public fun get_owners(pool:&Pool):u64{
@@ -225,7 +225,7 @@ module suino::pool{
             
             fee_percent:5,
             fee_scaling:10000, //fixed
-            reward:balance::zero<SUI>(),
+            reward_pool:balance::zero<SUI>(),
             lottery_percent:20,
             owners:1,
             sign:set::empty(),
@@ -252,7 +252,7 @@ module suino::pool{
             fee_percent,
             fee_scaling, //modified
             lottery_percent:20,
-            reward:balance::create_for_testing<SUI>(reward_balance),
+            reward_pool:balance::create_for_testing<SUI>(reward_balance),
             owners:0,
             sign:set::empty(),
             lock:true,
@@ -319,7 +319,7 @@ module suino::pool_test{
             balance::destroy_for_testing(remove_value);
             //pool.sui test
             assert!(pool::get_balance(&pool) == 9_900_000,1);
-            //reward test
+            //reward_pool test
             test::return_shared(pool);
         };
 

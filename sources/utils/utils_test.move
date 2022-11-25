@@ -2,7 +2,7 @@
 module suino::utils_test{
     use suino::utils::{
         calculate_percent,
-        calculate_fee_decimal,
+        
         vector_combine,
         keccak256,
         u64_from_vector
@@ -37,17 +37,10 @@ module suino::utils_test{
         assert!(amount == 0,0);
         let amount = calculate_percent(49,7);
         assert!(amount == 3,0);
+        let amount = calculate_percent(2743,5);
+        assert!(amount == 137,0);
     }
 
-    #[test]
-    fun calculate_fee_decimal_test(){
-        let amount = calculate_fee_decimal(10000,3,10000);
-        assert!(amount == 300,0);
-        let amount = calculate_fee_decimal(0,10,10000);
-        assert!(amount == 0,0);
-        let amount = calculate_fee_decimal(41412,3,10000);
-        assert!(amount == 12,0);
-    }
 
     #[test]
     fun vector_combine_test(){
