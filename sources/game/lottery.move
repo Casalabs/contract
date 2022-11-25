@@ -178,11 +178,11 @@ module suino::test_lottery{
 
         next_tx(scenario,user);
         {
-            player::test_player(ctx(scenario),10);
+            player::test_create(ctx(scenario),10);
         };
         next_tx(scenario,user2);
         {
-            player::test_player(ctx(scenario),10);
+            player::test_create(ctx(scenario),10);
         };
 
         next_tx(scenario,user);
