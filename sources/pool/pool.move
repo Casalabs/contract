@@ -32,7 +32,6 @@ module suino::pool{
         balance:Balance<SUI>,
         // lsp_supply:Supply<LSP>
         fee_percent:u8,
-        fee_scaling:u64,
         reward_pool:Balance<SUI>,
         lottery_percent:u8,
         owners:u64,
@@ -49,9 +48,7 @@ module suino::pool{
         let pool = Pool{
             id:object::new(ctx),
             balance:balance::zero<SUI>(),
-            
             fee_percent:5,
-            fee_scaling:10000, //fixed
             reward_pool:balance::zero<SUI>(),
             lottery_percent:20,
             owners:1,
@@ -81,8 +78,7 @@ module suino::pool{
         let balance = coin::into_balance(token);
         add_pool(pool,balance);
     }
-    
-    //only owner
+
     public(friend) entry fun withdraw(_:&Ownership,pool:&mut Pool,amount:u64,recipient:address,ctx:&mut TxContext){
         //lock check
         check_lock(pool);
@@ -93,8 +89,6 @@ module suino::pool{
         pool.lock = true;
     }
 
-
-    //only owner
     public(friend) entry fun add_owner(_:&Ownership,pool:&mut Pool,new_owner:address,ctx:&mut TxContext){
         //owners size have limit 4
         assert!(pool.owners < 5,EMaxOwner);
@@ -107,8 +101,6 @@ module suino::pool{
         // set::insert(&mut pool.owners,new_owner);
     }
 
-
-    //only owner
     public(friend) entry fun sign(_:&Ownership,pool:&mut Pool,ctx:&mut TxContext){
         
         let sign = &mut pool.sign;
@@ -123,15 +115,12 @@ module suino::pool{
         pool.lock = true;
     }
 
-    public(friend) entry fun set_fee_scaling(_:&Ownership,pool:&mut Pool,fee_scaling:u64){
-        pool.fee_scaling = fee_scaling;
-    }
 
     public(friend) entry fun set_fee_percent(_:&Ownership,pool:&mut Pool,percent:u8){
         pool.fee_percent = percent;
     }
 
-    entry fun set_lottery_percent(_:&Ownership,pool:&mut Pool,percent:u8){
+    public(friend) entry fun set_lottery_percent(_:&Ownership,pool:&mut Pool,percent:u8){
         pool.lottery_percent = percent;
     }
 
@@ -176,8 +165,6 @@ module suino::pool{
    }
 
 
-    //pool.reward_pool share
-    //public fun share_reward(pool:&mut Pool){}
    
 
 
@@ -185,16 +172,9 @@ module suino::pool{
     public fun get_balance(pool:&Pool):u64{
         balance::value(&pool.balance)
     }
-    public fun get_fee_and_scaling(pool:&Pool):(u8,u64){
-        (pool.fee_percent,pool.fee_scaling)
-    }
 
     public fun get_fee_percent(pool:&Pool):u8{
         pool.fee_percent
-    }
-
-    public fun get_fee_scaling(pool:&Pool):u64{
-        pool.fee_scaling
     }
 
     public fun get_reward(pool:&Pool):u64{
@@ -204,14 +184,14 @@ module suino::pool{
     public fun get_owners(pool:&Pool):u64{
         pool.owners
     }
-    public fun get_pool_sign(pool:&Pool):VecSet<address>{
+    public fun get_sign(pool:&Pool):VecSet<address>{
         pool.sign
     }
-    public fun get_pool_is_lock(pool:&Pool):bool{
+    public fun get_is_lock(pool:&Pool):bool{
         pool.lock
     }
 
-    public fun get_pool_lottery_percent(pool:&Pool):u8{
+    public fun get_lottery_percent(pool:&Pool):u8{
         pool.lottery_percent
     }
 
@@ -222,9 +202,7 @@ module suino::pool{
         let pool = Pool{
             id:object::new(ctx),
             balance:balance::zero<SUI>(),
-            
             fee_percent:5,
-            fee_scaling:10000, //fixed
             reward_pool:balance::zero<SUI>(),
             lottery_percent:20,
             owners:1,
@@ -242,7 +220,6 @@ module suino::pool{
     #[test_only]
     public fun test_pool(
         fee_percent:u8,
-        fee_scaling:u64,
         sui_balance:u64,
         reward_balance:u64,
         ctx:&mut TxContext){
@@ -250,7 +227,6 @@ module suino::pool{
             id:object::new(ctx),
             balance:balance::create_for_testing<SUI>(sui_balance),
             fee_percent,
-            fee_scaling, //modified
             lottery_percent:20,
             reward_pool:balance::create_for_testing<SUI>(reward_balance),
             owners:0,
@@ -386,7 +362,7 @@ module suino::pool_test{
             let pool = test::take_shared<Pool>(scenario);
             let ownership = test::take_from_sender<Ownership>(scenario);
             pool::sign(&ownership,&mut pool,ctx(scenario));
-            assert!(pool::get_pool_is_lock(&pool)==true,0 );
+            assert!(pool::get_is_lock(&pool)==true,0 );
             test::return_to_sender(scenario,ownership);
             test::return_shared(pool);
         };
@@ -397,7 +373,7 @@ module suino::pool_test{
              let pool = test::take_shared<Pool>(scenario);
             let ownership = test::take_from_sender<Ownership>(scenario);
             pool::sign(&ownership,&mut pool,ctx(scenario));
-            assert!(pool::get_pool_is_lock(&pool)==true,0 );
+            assert!(pool::get_is_lock(&pool)==true,0 );
             test::return_to_sender(scenario,ownership);
             test::return_shared(pool);
         };
@@ -409,7 +385,7 @@ module suino::pool_test{
             let pool = test::take_shared<Pool>(scenario);
             let ownership = test::take_from_sender<Ownership>(scenario);
             pool::sign(&ownership,&mut pool,ctx(scenario));
-            assert!(pool::get_pool_is_lock(&pool)==false,0 );
+            assert!(pool::get_is_lock(&pool)==false,0 );
             test::return_to_sender(scenario,ownership);
             test::return_shared(pool);
         };

@@ -149,7 +149,6 @@ module suino::lottery{
 
         transfer::share_object(lottery);
     }
-
 }
 
 
@@ -176,7 +175,7 @@ module suino::test_lottery{
         next_tx(scenario,owner);
         {
             lottery::test_lottery(10000,ctx(scenario));
-            pool::test_pool(5,10000,100000,1000,ctx(scenario));
+            pool::test_pool(5,100000,1000,ctx(scenario));
             random::test_random(b"casino",ctx(scenario));
         };
 

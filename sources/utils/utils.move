@@ -21,10 +21,8 @@ module suino::utils{
             return 0
         };
         
-        let (amount,fee_percent) = ((amount as u128),(fee_percent as u128));
-        let fee_amount = (amount * fee_percent) / 100;
-        
-        (fee_amount as u64)
+        let fee_amount = (amount * (fee_percent as u64)) / 100;
+        fee_amount 
     }
     
 
