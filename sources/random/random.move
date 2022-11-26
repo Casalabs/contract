@@ -4,7 +4,6 @@ module suino::random{
     use sui::tx_context::{Self,TxContext};
     use sui::transfer;
     use sui::ecdsa;
-    use std::vector;
     use suino::utils;
 
     
@@ -66,24 +65,7 @@ module suino::random{
     public fun get_random_hash(random:&Random):vector<u8>{
         random.random_hash
     }
-    fun u64_from_vector(v:vector<u8>,epoch:u64):u64{
-        let result = (epoch as u128)  ;
-        let count = 0;
-        loop{
-            if (vector::is_empty(&v)){
-                break
-            };
-            if (count == 0){
-                result = result + (vector::pop_back(&mut v) as u128);
-                count = 1;
-            }else{
-                result = result * (vector::pop_back(&mut v) as u128);
-                count = 0;
-            }
-            
-        };
-        (result as u64)
-    }
+ 
 
 
    //-------------TEST ONLY-----------------------

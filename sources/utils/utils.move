@@ -3,19 +3,18 @@ module suino::utils{
   use std::vector;
   use sui::ecdsa;
 
-  
     public fun u64_from_vector(v:vector<u8>,epoch:u64):u64{
-            let result = epoch;
-            
-            loop{
-                if (vector::is_empty(&v)){
-                    break
-                };
-                result = result + (vector::pop_back(&mut v) as u64);
-                
-            }; 
-            (result as u64)
+        let result = epoch;
+        loop{
+            if (vector::is_empty(&v)){
+                break
+            };
+            result = result + (vector::pop_back(&mut v) as u64);
+        };
+        (result as u64)
     }
+
+
 
     public fun calculate_percent(amount:u64,fee_percent:u8):u64{
         if (amount == 0 || (amount <= (fee_percent as u64)) ){
