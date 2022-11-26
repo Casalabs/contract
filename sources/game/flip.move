@@ -149,7 +149,7 @@ module suino::test_flip{
         let scenario_val = test::begin(user);
         let scenario = &mut scenario_val;
         
-        //init
+        //=============init===============================
         next_tx(scenario,user);
         {
             lottery::test_lottery(10000,ctx(scenario));
@@ -240,8 +240,6 @@ module suino::test_flip{
 
         next_tx(scenario,user);
         {
-               use std::debug;
-
             let (
                 lottery,
                 pool,
