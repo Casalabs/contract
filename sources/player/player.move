@@ -10,6 +10,8 @@ module suino::player{
     const EAmountIncorrect: u64 = 0;
     const ENotOwner: u64 = 1;
     const EInvalidAmount:u64 = 2;
+
+    
     struct Player has key,store{
         id:UID,
         count:u64,

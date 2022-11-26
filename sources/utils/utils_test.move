@@ -23,7 +23,7 @@ module suino::utils_test{
        let vec:vector<u8> = b"hello"; // //0x68656c6c6f
        let result = u64_from_vector(vec,epoch);
     //    debug::print(&result);
-       assert!(result == 33131,0);
+       assert!(result == 532,0);
        test::end(scenario_val);
     }
 

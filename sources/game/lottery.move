@@ -22,7 +22,7 @@ module suino::lottery{
 
     struct Lottery has key{
         id:UID,
-        tickets:VecMap<u64,vector<address>>,
+        tickets:VecMap<vector<u8>,vector<address>>,
         prize:u64,
         name:String,
         description:String,
@@ -30,7 +30,7 @@ module suino::lottery{
 
     struct JackpotEvent has copy,drop{
         jackpot_amount:u64,
-        jackpot_number:u64,
+        jackpot_number:vector<u8>,
         jackpot_members:vector<address>,
         jackpot_count:u64,
     }
@@ -39,7 +39,7 @@ module suino::lottery{
         
         let lottery = Lottery{
             id:object::new(ctx),
-            tickets:map::empty<u64,vector<address>>(),
+            tickets:map::empty<vector<u8>,vector<address>>(),
             prize:0,
             name:string::utf8(b"SUINO LOTTERY"),
             description:string::utf8(b"GAME PLAYER REWARD LOTTERY"),
@@ -55,18 +55,20 @@ module suino::lottery{
         pool:&mut Pool,
         lottery:&mut Lottery,
         ctx:&mut TxContext){
-        let jackpot_number = random::get_random_int(random,ctx);
-        if (jackpot_number > 999999){
-            while(jackpot_number <= 999999){
-            random::game_after_set_random(random,ctx);
-            jackpot_number = jackpot_number + random::get_random_int(random,ctx);
-            };
-        };
+
        
+        let jackpot_number = vector::empty<u8>();
+        while(vector::length(&jackpot_number) < 6){
+            let number = {
+                ((random::get_random_int(random,ctx) % 10) as u8)
+            };
+            vector::push_back(&mut jackpot_number,number);
+            random::game_after_set_random(random,ctx);
+        };       
 
         let exsitsJackpot = map::contains(&mut lottery.tickets,&jackpot_number);
         if (!exsitsJackpot){
-            lottery.tickets =map::empty<u64,vector<address>>();
+            lottery.tickets =map::empty<vector<u8>,vector<address>>();
             return
         };
 
@@ -95,23 +97,23 @@ module suino::lottery{
     public(friend) entry fun buy_ticket(
         lottery:&mut Lottery,
         player:&mut Player,
-        numbers:vector<u64>,
+        numbers:vector<vector<u8>>,
         ctx:&mut TxContext){
-
+        
         assert!(player::get_count(player) >= vector::length(&numbers), 0);
 
         while(!vector::is_empty(&numbers)){
-            let numbers = vector::pop_back(&mut numbers);
-            assert!(numbers <= 999999,0);
+            let number = vector::pop_back(&mut numbers);
+            assert!(vector::length(&number) < 7,0);
             //player count set
             player::count_down(player);
 
             //lottery.tickets setting
-            if (map::contains(&lottery.tickets,&numbers)){
-                let value = map::get_mut(&mut lottery.tickets,&numbers);
+            if (map::contains(&lottery.tickets,&number)){
+                let value = map::get_mut(&mut lottery.tickets,&number);
                 vector::push_back(value,sender(ctx));
             }else{
-                map::insert(&mut lottery.tickets,numbers,vector::singleton(sender(ctx)));
+                map::insert(&mut lottery.tickets,number,vector::singleton(sender(ctx)));
             }
         };
     }
@@ -127,7 +129,7 @@ module suino::lottery{
     public fun init_for_testing(ctx:&mut TxContext){
         let lottery = Lottery{
             id:object::new(ctx),
-            tickets:map::empty<u64,vector<address>>(),
+            tickets:map::empty<vector<u8>,vector<address>>(),
             prize:0,
             name:string::utf8(b"SUINO LOTTERY"),
             description:string::utf8(b"GAME PLAYER REWARD LOTTERY"),
@@ -139,7 +141,7 @@ module suino::lottery{
     public fun test_lottery(prize:u64,ctx:&mut TxContext){
            let lottery = Lottery{
             id:object::new(ctx),
-            tickets:map::empty<u64,vector<address>>(),
+            tickets:map::empty<vector<u8>,vector<address>>(),
             prize,
             name:string::utf8(b"SUINO LOTTERY"),
             description:string::utf8(b"GAME PLAYER REWARD LOTTERY"),
@@ -161,6 +163,8 @@ module suino::test_lottery{
     use suino::player::{Self,Player};
     use suino::pool::{Self,Pool,Ownership};
     use suino::random::{Self,Random};
+    
+    
     #[test]
     fun test_lottery(){
         let owner = @0xC0FFEE;
@@ -194,7 +198,7 @@ module suino::test_lottery{
             // test::return_shared(random);
             let lottery = test::take_shared<Lottery>(scenario);
             let player = test::take_from_sender<Player>(scenario);
-            let numbers = vector[123456,111111,222222,33333,44444,555555,666666,77777];
+            let numbers = vector[vector[1,2,3,4,5,6]];
             lottery::buy_ticket(&mut lottery,&mut player,numbers,ctx(scenario));
             test::return_to_sender<Player>(scenario,player);
             test::return_shared(lottery);
@@ -229,7 +233,7 @@ module suino::test_lottery{
             // test::return_shared(random);
             let lottery = test::take_shared<Lottery>(scenario);
             let player = test::take_from_sender<Player>(scenario);
-            let numbers = vector[37686];
+            let numbers = vector[vector[1,2,3,4,5,6],vector[2,6,9,4,8,4]];
             lottery::buy_ticket(&mut lottery,&mut player,numbers,ctx(scenario));
             test::return_to_sender<Player>(scenario,player);
             test::return_shared(lottery);
@@ -239,25 +243,48 @@ module suino::test_lottery{
         {
            let lottery = test::take_shared<Lottery>(scenario);
             let player = test::take_from_sender<Player>(scenario);
-            let numbers = vector[37686];
+            let numbers = vector[vector[2,6,9,4,8,4]];
+            
             lottery::buy_ticket(&mut lottery,&mut player,numbers,ctx(scenario));
             test::return_to_sender<Player>(scenario,player);
             test::return_shared(lottery);
         };
+
+
         //jackpot
         next_tx(scenario,owner);
         {
-            use std::debug;
+            // use std::vector;
+            // use std::debug;
             let lottery = test::take_shared<Lottery>(scenario);
             let random = test::take_shared<Random>(scenario);
             let ownership = test::take_from_sender<Ownership>(scenario);
             let pool = test::take_shared<Pool>(scenario);
-              let jackpot_number = random::get_random_int(&random,ctx(scenario));
-            debug::print(&jackpot_number);
+            
+
+            // let jackpot_number = vector::empty<u8>();
+            // debug::print(&jackpot_number);
+            // while(vector::length(&jackpot_number) < 6){
+            //     let number = {
+            //         ((random::get_random_int(&random,ctx(scenario)) % 10) as u8)
+            //     };
+            //     debug::print(&number);
+            //     vector::push_back(&mut jackpot_number,number);
+            //     debug::print(&jackpot_number);
+            //     random::game_after_set_random(&mut random,ctx(scenario));
+            // };
+               
+            // debug::print(&jackpot_number);
+
+            // let vector2 = vector::empty<u8>();
+            // vector::push_back(&mut vector2,3);
+            // debug::print(&vector2);
            
+            // debug::print(&equal);
+            
             lottery::jackpot(&ownership,&mut random,&mut pool,&mut lottery,ctx(scenario));
             assert!(lottery::get_prize(&lottery) == 0,0);
-            assert!(pool::get_balance(&pool) == 90000,0 );
+            assert!(pool::get_balance(&pool) == 90000,0);
             test::return_to_sender(scenario,ownership);
             test::return_shared(lottery);
             test::return_shared(random);
