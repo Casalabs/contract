@@ -33,6 +33,7 @@ module suino::pool{
         // lsp_supply:Supply<LSP>
         fee_percent:u8,
         reward_pool:Balance<SUI>,
+        minimum_bet:u64,
         lottery_percent:u8,
         owners:u64,
         sign:VecSet<address>,
@@ -50,6 +51,7 @@ module suino::pool{
             balance:balance::zero<SUI>(),
             fee_percent:5,
             reward_pool:balance::zero<SUI>(),
+            minimum_bet:1000,
             lottery_percent:20,
             owners:1,
             sign:set::empty(),
@@ -124,6 +126,12 @@ module suino::pool{
         pool.lottery_percent = percent;
     }
 
+     public(friend) entry fun set_minimum_amount(_:&Ownership,pool:&mut Pool,amount:u64){
+        pool.minimum_bet = amount;
+    }
+
+
+
     public(friend) entry fun reward_share(_:&Ownership,pool:&mut Pool,nft:&SuinoNFTState,ctx:&mut TxContext){
         
         let holders = nft::get_holders(nft);
@@ -194,6 +202,9 @@ module suino::pool{
     public fun get_lottery_percent(pool:&Pool):u8{
         pool.lottery_percent
     }
+     public fun get_minimum_amount(pool:&Pool):u64{
+        pool.minimum_bet
+    }
 
    
 
@@ -204,6 +215,7 @@ module suino::pool{
             balance:balance::zero<SUI>(),
             fee_percent:5,
             reward_pool:balance::zero<SUI>(),
+            minimum_bet:1000,
             lottery_percent:20,
             owners:1,
             sign:set::empty(),
@@ -227,6 +239,7 @@ module suino::pool{
             id:object::new(ctx),
             balance:balance::create_for_testing<SUI>(sui_balance),
             fee_percent,
+            minimum_bet:1000,
             lottery_percent:20,
             reward_pool:balance::create_for_testing<SUI>(reward_balance),
             owners:0,

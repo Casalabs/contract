@@ -278,24 +278,6 @@ module suino::nft{
 
       transfer::transfer(nft,recipent);
     }
-    // #[test_only]
-    // public fun test_create_state(
 
-    //     user1:address,
-    //     user2:address,
-    //     ctx:&mut TxContext
-        
-    //     ):SuinoNFTState{
-       
-        
-    //     let state = SuinoNFTState{
-    //         id:object::new(ctx),
-    //         owner:tx_context::sender(ctx),
-            
-    //         holder,
-    //         fee:5,
-    //     };
-    //     state
-    // }
 }
 

@@ -2,7 +2,7 @@ module suino::flip{
     use std::vector;
     use std::string::{Self,String};
     use sui::object::{Self,UID};
-    use sui::tx_context::{TxContext,sender};
+    use sui::tx_context::{TxContext};
     use sui::transfer;
     use sui::coin::{Self,Coin};
     
@@ -24,7 +24,7 @@ module suino::flip{
     const EInvalidValue:u64 = 1;
     const EInvalidAmount:u64 = 2;
 
-    const MINIMUM_AMOUNT:u64 = 200000000;
+    
     struct Flip has key{
         id:UID,
         name:String,
@@ -54,25 +54,32 @@ module suino::flip{
         pool:&mut Pool,
         rand:&mut Random,
         lottery:&mut Lottery,
-        bet:Coin<SUI>,
+        coin:&mut Coin<SUI>,
+        bet_amount:u64,
         value:vector<u64>, 
         ctx:&mut TxContext)
     {
-        assert!(coin::value(&bet)>0,EZeroAmount);
-        assert!(coin::value(&bet) >= MINIMUM_AMOUNT,EInvalidAmount);
+        assert!(coin::value(coin)>0,EZeroAmount);
+        assert!(coin::value(coin) >= pool::get_minimum_amount(pool),EInvalidAmount);
+        assert!(coin::value(coin) >= bet_amount,EInvalidAmount);
         assert!(vector::length(&value) > 0 && vector::length(&value) < 4,EInvalidValue);
       
     
-        let bet = coin::into_balance<SUI>(bet);
-        let bet_amount = balance::value(&bet);
+        // let bet = coin::into_balance<SUI>(coin);
+         let coin_balance = coin::balance_mut(coin);
+
+         let bet = balance::split(coin_balance, bet_amount);
+
+         //only calculate
+         let bet_amt = balance::value(&bet);
 
 
           //reward -> nft holder , pool + sui
         {
             let fee_percent = pool::get_fee_percent(pool);
             let fee_amt = calculate_percent(bet_amount,fee_percent);
-            bet_amount = bet_amount - fee_amt;
-            let fee = balance::split<SUI>(&mut bet,fee_amt);  //sui = sui - fee_amt
+            bet_amt = bet_amt - fee_amt;
+            let fee = balance::split<SUI>(&mut bet,fee_amt);  
             pool::add_reward(pool,fee);
             pool::add_pool(pool,bet);
         };
@@ -82,8 +89,8 @@ module suino::flip{
       
 
         //calculate jackpot amt
-        let jackpot_amount = bet_amount;
-
+        let jackpot_amount = bet_amt;
+        
         //reverse because vector only pop_back [0,0,1] -> [1,0,0]
         vector::reverse(&mut value);
         //[0,0,1]
@@ -101,16 +108,17 @@ module suino::flip{
 
         //lottery prize up!
         if (jackpot_amount == 0){
-            lose_game_lottery_update(pool,lottery,bet_amount);
+            lose_game_lottery_update(pool,lottery,bet_amt);
             return
         };
+           
         
-       
-
         let jackpot = pool::remove_pool(pool,jackpot_amount); //balance<SUI>
         
-        //transfer coin of jackpot amount
-        transfer::transfer(coin::from_balance<SUI>(jackpot,ctx),sender(ctx));
+        balance::join(coin_balance,jackpot);
+       
+
+  
     }
        
     

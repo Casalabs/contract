@@ -1,4 +1,3 @@
-
 #[test_only]
 module suino::test_flip{
    
@@ -6,11 +5,14 @@ module suino::test_flip{
     use sui::test_scenario::{Self as test,next_tx,ctx,Scenario};
     use sui::coin::{Self,Coin};
     use sui::sui::SUI;
+    use sui::transfer;
     use suino::lottery::{Self,Lottery};
     use suino::pool::{Self,Pool};
     use suino::random::{Self,Random};
     use suino::player::{Self,Player};
     use suino::flip::{Self,Flip};
+      use std::debug;
+ 
     #[test]
     fun test_flip(){
         
@@ -22,34 +24,38 @@ module suino::test_flip{
         //=============init===============================
         next_tx(scenario,user);
         {
-            lottery::test_lottery(10000,ctx(scenario));
-            pool::test_pool(5,10000000000,0,ctx(scenario));
+            lottery::test_lottery(0,ctx(scenario));
+            pool::test_pool(5,1000000,0,ctx(scenario));
             random::test_random(b"casino",ctx(scenario));
             flip::init_for_testing(ctx(scenario));
             player::test_create(ctx(scenario),10);
+            let coin = coin::mint_for_testing<SUI>(20000,ctx(scenario));
+            transfer::transfer(coin,user);
         };
 
         //==============Success==============================
         next_tx(scenario,user);
         {   
-            test_game(scenario,vector[1,1,0]);
+
+            let coin = test::take_from_sender<Coin<SUI>>(scenario);
+         
+            test_game(scenario,&mut coin,20000,vector[1,0,0]);
+            test::return_to_sender(scenario,coin);
         };
 
        //jackpot coin check
        next_tx(scenario,user);
        {    
-            // use std::debug;
             let coin = test::take_from_sender<Coin<SUI>>(scenario);
-            // let coin2 = test::take_from_sender<Coin<SUI>>(scenario);
-            // debug::print(&coin::value(&coin));
-            assert!(coin::value(&coin) == 7600000000, 0);
+
+            assert!(coin::value(&coin) == 152000, 0);
+
             test::return_to_sender(scenario,coin);
-            // test::return_to_sender(scenario,coin2);
        };
         //state check
         next_tx(scenario,user);
         {
-            // use std::debug;
+          
 
             let (
                 lottery,
@@ -58,18 +64,26 @@ module suino::test_flip{
                 flip
             )
             = require_shared(scenario);
-            //----------------------------------------
-            //| pool check                            |
-            //| pool_original_balance = 10000000000   |
-            //|               +                       |
-            //| betting_balance       =  1000000000   |
-            //               -                        |
-            //| jackpot_balance       =  7600000000   |
-            //| fee_reward           =    50000000    |
-            //| pool_reserve_balance  =  3350000000   |
-            //-----------------------------------------
-            assert!(pool::get_balance(&pool) == 3350000000,0);
-            assert!(pool::get_reward(&pool) == 50000000,0);
+
+            //Jackpot = (Betting_balance - fee_reward ) * (2^ jackpot_count)
+            //Example 
+            //Betting = 10000  fee_reward = 500
+            //(10000 - 500) * (2 * jackpot_count) = 38000
+            //-----------------------------------------------
+            //| pool check                                   |
+            //| pool_original_balance =            1000000   |
+            //|                                              |
+            //|                                              | 
+            //| betting_balance       =              20000   |
+            //| fee_reward            =               1000   |
+            //| rolling_balance       =              19000   |
+            //   jackpot_count        =                  3   |
+            //| jackpot_balance       =             152000   | 
+            //| pool_reserve_balance  =             867000   | 
+            //-----------------------------------------------
+            debug::print(&pool::get_balance(&pool));
+            assert!(pool::get_balance(&pool) == 867000,0);
+            assert!(pool::get_reward(&pool) == 1000,0);
 
 
              //----------------------------------------
@@ -84,29 +98,39 @@ module suino::test_flip{
             test::return_to_sender(scenario,player);
             //----------------------------------------
             //| lottery check                         |
-            //| original_lottery_prize   =  10000     |
-            //| now_prize              =    10000     |
+            //| original_lottery_prize   =       0    |
+            //| now_prize              =         0    |
             //-----------------------------------------
-            assert!(lottery::get_prize(&lottery) == 10000,0);
+            assert!(lottery::get_prize(&lottery) == 0,0);
             
             return_to_sender(lottery,pool,random,flip);
         };
         
+
+
+
+
+
         //========================Fail=============================
         next_tx(scenario,user);
-        {
-            test_game(scenario,vector[0,0,0]);
-        };
-
-        next_tx(scenario,user);
-        {
-            use std::debug;
+        {   
             let coin = test::take_from_sender<Coin<SUI>>(scenario);
-            
-            debug::print(&coin::value(&coin));
-            assert!(coin::value(&coin) == 7600000000, 0);
+        
+            let amount = coin::value(&coin);   
+            test_game(scenario,&mut coin,amount,vector[0,0,0]);
+         
             test::return_to_sender(scenario,coin);
         };
+        //fail balance check
+        next_tx(scenario,user);
+        {
+            let coin = test::take_from_sender<Coin<SUI>>(scenario);
+            let amount = coin::value(&coin);
+            assert!(amount == 0, 0);
+            test::return_to_sender(scenario,coin);
+        };
+
+     
 
         next_tx(scenario,user);
         {
@@ -117,18 +141,21 @@ module suino::test_flip{
                 flip
             )
             = require_shared(scenario);
-            //----------------------------------------
-            //| pool check                            |
-            //| pool_original_balance = 3350000000    |
-            //|               +                       |
-            //| betting_balance       = 1000000000    |
-            //               -                        |
-            //| jackpot_balance       =          0    |
-            //| fee_reward            =   50000000    |
-            //| pool_reserve_balance  = 4300000000    |
-            //-----------------------------------------
-            assert!(pool::get_balance(&pool) == 4300000000,0);
-            assert!(pool::get_reward(&pool) == 100000000,0);
+            //----------------------------------------------
+            //| pool check                                  |
+            //| pool_original_balance =           867000    |
+            //|               +                             |
+            //| betting_balance       =           152000    |
+            //               -                              |
+            //| jackpot_balance       =                0    |
+            //| fee_reward            =             7600    |
+            //|    add_pool           =            95000    |
+            //| pool_reserve_balance  =          1011400    |
+            //----------------------------------------------
+            debug::print(&pool::get_balance(&pool));
+            
+            assert!(pool::get_balance(&pool) == 1011400,0);
+            assert!(pool::get_reward(&pool) == 8600,0);
 
 
              //----------------------------------------
@@ -143,16 +170,16 @@ module suino::test_flip{
             test::return_to_sender(scenario,player);
             //----------------------------------------
             //| lottery check                         |
-            //| original_lottery_prize   =      10000 |
-            //| betting_balance          = 1000000000 |
+            //| original_lottery_prize   =          0 |
+            //| betting_balance          =     152000 |
             //|                  -                    |
-            //| fee_balance              =   50000000 |
-            //| pool_add_balance         =  950000000 |
+            //| fee_balance              =       7600 |
+            //| pool_add_balance         =     152000 |
             //| lottery_percent          =         20 |
-            //| now_prize              =    190010000 |
+            //| now_prize              =        28880 |
             //-----------------------------------------
-         
-            assert!(lottery::get_prize(&lottery) == 190010000,0);
+            debug::print(&lottery::get_prize(&lottery));
+            assert!(lottery::get_prize(&lottery) == 28880,0);
             
             return_to_sender(lottery,pool,random,flip);
         };
@@ -183,7 +210,7 @@ module suino::test_flip{
             test::return_shared(flip);
     }
 
-    fun test_game(scenario:&mut Scenario,value:vector<u64>){
+    fun test_game(scenario:&mut Scenario,test_coin:&mut Coin<SUI>,amount:u64,value:vector<u64>){
           let (
                 lottery,
                 pool,
@@ -194,7 +221,7 @@ module suino::test_flip{
                 
 
             let player = test::take_from_sender<Player>(scenario);
-            let test_coin = coin::mint_for_testing<SUI>(1000000000,ctx(scenario));
+           
             flip::game(
                 &flip,
                 &mut player,
@@ -202,9 +229,11 @@ module suino::test_flip{
                 &mut random,
                 &mut lottery,
                 test_coin,
+                amount,
                 value,
                 ctx(scenario)
             );
+            
             test::return_to_sender(scenario,player);
             return_to_sender(lottery,pool,random,flip);
     }
@@ -212,4 +241,3 @@ module suino::test_flip{
 
     
 }
-
