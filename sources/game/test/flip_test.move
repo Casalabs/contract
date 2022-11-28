@@ -14,22 +14,19 @@ module suino::test_flip{
 
     #[test]
     fun test_flip(){
-        
         let user = user();
-        
         let scenario_val = test::begin(user);
         let scenario = &mut scenario_val;
-        
         //=============init===============================
         next_tx(scenario,user);
         {
             test_init(scenario,user,20000);
         };
 
-        //==============Success==============================
+        //==============Win==============================
         next_tx(scenario,user);
         {   
-            //!! vector[1,0,0] = only test success from test case 
+            //!! vector[1,0,0] = only test win from test case 
             test_game(scenario,20000,vector[1,0,0]);
         };
         
@@ -94,7 +91,7 @@ module suino::test_flip{
 
 
 
-        //========================Fail=============================
+        //========================Lose=============================
         next_tx(scenario,user);
         {   
             //fail

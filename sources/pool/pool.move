@@ -19,12 +19,6 @@ module suino::pool{
     const ELock:u64 = 2;
     const EMaxOwner:u64 = 3;
     const EEnoughReward:u64 = 4;
-    // struct LSP has drop{}
-    
-    //check of list
-    //1. fee_percent ??
-    //2. add_liquidity??-> nft?
-    //3. 
 
     
     struct Pool has key{
@@ -202,7 +196,7 @@ module suino::pool{
     public fun get_lottery_percent(pool:&Pool):u8{
         pool.lottery_percent
     }
-     public fun get_minimum_amount(pool:&Pool):u64{
+     public fun get_minimum_bet(pool:&Pool):u64{
         pool.minimum_bet
     }
 
@@ -220,7 +214,6 @@ module suino::pool{
             owners:1,
             sign:set::empty(),
             lock:true,
-            // lsp_supply:balance::create_supply<LSP>(lsp)
         };
         let ownership = Ownership{
             id:object::new(ctx)
