@@ -17,12 +17,12 @@ module suino::flip{
         calculate_percent
     };
     use suino::game_utils::{
-        lose_game_lottery_update
+        lose_game_lottery_update,
+        check_maximum_bet_amount
     };
 
-    const EZeroAmount:u64 = 0;
+    const EInvalidAmount:u64 = 0;
     const EInvalidValue:u64 = 1;
-    const EInvalidAmount:u64 = 2;
 
     
     struct Flip has key{
@@ -47,7 +47,7 @@ module suino::flip{
         transfer::share_object(flip);
     }
 
-    
+  
     public entry fun game(
         _:&Flip,
         player:&mut Player,
@@ -59,29 +59,30 @@ module suino::flip{
         value:vector<u64>, 
         ctx:&mut TxContext)
     {
-        assert!(coin::value(coin)>0,EZeroAmount);
-        assert!(coin::value(coin) >= pool::get_minimum_amount(pool),EInvalidAmount);
+        
         assert!(coin::value(coin) >= bet_amount,EInvalidAmount);
+        assert!(bet_amount >= pool::get_minimum_bet(pool),EInvalidAmount);
+        check_maximum_bet_amount(bet_amount,pool::get_balance(pool));
         assert!(vector::length(&value) > 0 && vector::length(&value) < 4,EInvalidValue);
       
     
         // let bet = coin::into_balance<SUI>(coin);
          let coin_balance = coin::balance_mut(coin);
 
-         let bet = balance::split(coin_balance, bet_amount);
+         let bet = balance::split(coin_balance, bet_amount); //19000
 
          //only calculate
-         let bet_amt = balance::value(&bet);
+         let bet_amt = balance::value(&bet); //19000
 
 
           //reward -> nft holder , pool + sui
         {
             let fee_percent = pool::get_fee_percent(pool);
-            let fee_amt = calculate_percent(bet_amount,fee_percent);
-            bet_amt = bet_amt - fee_amt;
+            let fee_amt = calculate_percent(bet_amount,fee_percent); //1000
             let fee = balance::split<SUI>(&mut bet,fee_amt);  
             pool::add_reward(pool,fee);
-            pool::add_pool(pool,bet);
+            bet_amt = bet_amt - fee_amt; 
+            pool::add_pool(pool,bet); 
         };
         
         //player object count_up
@@ -116,9 +117,6 @@ module suino::flip{
         let jackpot = pool::remove_pool(pool,jackpot_amount); //balance<SUI>
         
         balance::join(coin_balance,jackpot);
-       
-
-  
     }
        
     
