@@ -18,8 +18,8 @@ module suino::lottery{
     #[test_only]
     friend suino::test_lottery;
 
-    const EInvalidValue:u64 = 0;
-
+    const EInvalidCount:u64 = 0;
+    const EInvalidValue:u64 = 1;
     struct Lottery has key{
         id:UID,
         tickets:VecMap<vector<u8>,vector<address>>,
@@ -103,11 +103,11 @@ module suino::lottery{
         numbers:vector<vector<u8>>,
         ctx:&mut TxContext){
         
-        assert!(player::get_count(player) >= vector::length(&numbers), EInvalidValue);
+        assert!(player::get_count(player) >= vector::length(&numbers), EInvalidCount);
 
         while(!vector::is_empty(&numbers)){
             let number = vector::pop_back(&mut numbers);
-            assert!(vector::length(&number) < 7,0);
+            assert!(vector::length(&number) < 7,EInvalidValue);
             //player count set
             player::count_down(player);
 
@@ -142,7 +142,7 @@ module suino::lottery{
         transfer::share_object(lottery);
     }
 
-    
+
     #[test_only]
     public fun test_lottery(prize:u64,ctx:&mut TxContext){
            let lottery = Lottery{

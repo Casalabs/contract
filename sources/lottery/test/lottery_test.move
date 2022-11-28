@@ -20,9 +20,7 @@ module suino::test_lottery{
 
         next_tx(scenario,owner);
         {
-            lottery::test_lottery(10000,ctx(scenario));
-            pool::test_pool(5,100000,1000,ctx(scenario));
-            random::test_random(b"casino",ctx(scenario));
+            init_(scenario);
         };
 
         next_tx(scenario,user);
@@ -33,6 +31,9 @@ module suino::test_lottery{
         {
             player::test_create(ctx(scenario),10);
         };
+
+
+
         //===============No Jackpot Scenario=========================
         next_tx(scenario,user);
         {   
@@ -64,6 +65,7 @@ module suino::test_lottery{
 
         
         // //==============JACKPOT SCENARIO========================
+
         next_tx(scenario,user);
         {   
             let lottery = test::take_shared<Lottery>(scenario);
@@ -99,12 +101,10 @@ module suino::test_lottery{
         {
             let lottery = test::take_shared<Lottery>(scenario);
             let pool = test::take_shared<Pool>(scenario);
-            
-            debug::print(&lottery::get_prize(&lottery));
-            debug::print(&pool::get_balance(&pool));
-            // debug::print(&lottery);
+
             assert!(lottery::get_prize(&lottery) == 0,0);
             assert!(pool::get_balance(&pool) == 90000,0);
+
             test::return_shared(pool); 
             test::return_shared(lottery);
         };
@@ -129,6 +129,72 @@ module suino::test_lottery{
         test::end(scenario_val);
     }
 
+    #[test]
+    #[expected_failure(abort_code = 0)]
+    fun ticket_more_than_count(){
+        let owner = @0xC0FFEE;
+        let user = @0xA1;
+   
+        let scenario_val = test::begin(user);
+        let scenario = &mut scenario_val;
+
+
+        next_tx(scenario,owner);
+        {
+            init_(scenario);
+        };
+
+        next_tx(scenario,user);
+        {
+            player::test_create(ctx(scenario),1);
+        };
+
+        next_tx(scenario,user);
+        {   
+            let lottery = test::take_shared<Lottery>(scenario);
+            let player = test::take_from_sender<Player>(scenario);
+            let numbers = vector[vector[1,2,3,4,5,6],vector[1,2,3,4,5,7],vector[2,3,4,5,6,7]];
+            lottery::buy_ticket(&mut lottery,&mut player,numbers,ctx(scenario));
+
+            test::return_to_sender(scenario,player);
+            test::return_shared(lottery);
+        };
+
+        test::end(scenario_val);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 1)]
+    fun invalid_value_buy_ticket(){
+        let owner = @0xC0FFEE;
+        let user = @0xA1;
+   
+        let scenario_val = test::begin(user);
+        let scenario = &mut scenario_val;
+
+        next_tx(scenario,owner);
+        {
+            init_(scenario);
+        };
+
+        next_tx(scenario,user);
+        {
+            player::test_create(ctx(scenario),10);
+        };
+
+        next_tx(scenario,user);
+        {   
+            let lottery = test::take_shared<Lottery>(scenario);
+            let player = test::take_from_sender<Player>(scenario);
+            let numbers = vector[vector[1,2,3,4,5,6,1]];
+            lottery::buy_ticket(&mut lottery,&mut player,numbers,ctx(scenario));
+
+            test::return_to_sender(scenario,player);
+            test::return_shared(lottery);
+        };
+        test::end(scenario_val);
+    }
+
     //============utils==================
     fun jackpot(scenario:&mut Scenario){
     
@@ -143,5 +209,11 @@ module suino::test_lottery{
         test::return_shared(lottery);
         test::return_shared(random);
         test::return_shared(pool);  
+    }
+
+    fun init_(scenario:&mut Scenario){
+        lottery::test_lottery(10000,ctx(scenario));
+        pool::test_pool(5,100000,1000,ctx(scenario));
+        random::test_random(b"casino",ctx(scenario));
     }
 }
