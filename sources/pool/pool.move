@@ -75,26 +75,26 @@ module suino::pool{
         add_pool(pool,balance);
     }
 
-    public(friend) entry fun withdraw(_:&Ownership,pool:&mut Pool,amount:u64,recipient:address,ctx:&mut TxContext){
+    public(friend) entry fun withdraw(_:&Ownership,pool:&mut Pool,amount:u64,ctx:&mut TxContext){
         //lock check
         check_lock(pool);
  
         let balance = remove_pool(pool,amount);
        
-        transfer::transfer(coin::from_balance(balance,ctx),recipient);
+        transfer::transfer(coin::from_balance(balance,ctx),sender(ctx));
         pool.lock = true;
     }
 
     public(friend) entry fun add_owner(_:&Ownership,pool:&mut Pool,new_owner:address,ctx:&mut TxContext){
         //owners size have limit 4
-        assert!(pool.owners < 5,EMaxOwner);
-       
+        assert!(pool.owners < 4,EMaxOwner);
+
         let ownership = Ownership{
             id:object::new(ctx)
         };
         transfer::transfer(ownership,new_owner);
         pool.owners = pool.owners + 1;
-        // set::insert(&mut pool.owners,new_owner);
+        
     }
 
     public(friend) entry fun sign(_:&Ownership,pool:&mut Pool,ctx:&mut TxContext){
@@ -235,7 +235,7 @@ module suino::pool{
             minimum_bet:1000,
             lottery_percent:20,
             reward_pool:balance::create_for_testing<SUI>(reward_balance),
-            owners:0,
+            owners:1,
             sign:set::empty(),
             lock:true,
         };
