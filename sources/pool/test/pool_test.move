@@ -286,7 +286,6 @@ module suino::pool_test{
 
     #[test]
     #[expected_failure(abort_code = 3)]
-    //
     fun add_owner_fail(){
         let owner = @0xC0FFEE;
         let user = @0xA1;
@@ -308,14 +307,15 @@ module suino::pool_test{
             pool::add_owner(&ownership,&mut pool,user2,ctx(scenario));
             pool::add_owner(&ownership,&mut pool,user3,ctx(scenario));
             pool::add_owner(&ownership,&mut pool,user4,ctx(scenario));
-            
-            
             test::return_to_sender(scenario,ownership);
             test::return_shared(pool);
         };
 
         test::end(scenario_val);
     }
+
+
+    
 
     //================utils=======================
     fun sign(scenario:&mut Scenario){

@@ -137,7 +137,6 @@ module suino::pool{
         };
         while(!map::is_empty(&holders)){
             let (_,value) = map::pop(&mut holders);
-            //append    
             let reward_balance = remove_reward(pool,reward_pool);
             let reward_coin = coin::from_balance(reward_balance,ctx);
             transfer::transfer(reward_coin,value);
