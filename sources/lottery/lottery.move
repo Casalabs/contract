@@ -18,7 +18,7 @@ module suino::lottery{
     #[test_only]
     friend suino::test_lottery;
 
-    
+    const EInvalidValue:u64 = 0;
 
     struct Lottery has key{
         id:UID,
@@ -75,7 +75,7 @@ module suino::lottery{
         let jackpot_members = map::get_mut(&mut lottery.tickets,&jackpot_number);
           
        
-
+        
         let jackpot_count = vector::length(jackpot_members);
         let jackpot_amount = lottery.prize / jackpot_count;
         while(!vector::is_empty(jackpot_members)){
@@ -100,7 +100,7 @@ module suino::lottery{
         numbers:vector<vector<u8>>,
         ctx:&mut TxContext){
         
-        assert!(player::get_count(player) >= vector::length(&numbers), 0);
+        assert!(player::get_count(player) >= vector::length(&numbers), EInvalidValue);
 
         while(!vector::is_empty(&numbers)){
             let number = vector::pop_back(&mut numbers);

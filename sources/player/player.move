@@ -101,6 +101,7 @@ module suino::player{
         dynamic_field::add(&mut marketplace.id, item_id, listing);
     }
 
+
     /// Call [`delist`] and transfer item to the sender.
     public entry fun delist_and_take<C>(
         marketplace: &mut Marketplace,
@@ -141,6 +142,8 @@ module suino::player{
         transfer::transfer(fee_coin,get_market_owner(market));
         transfer::transfer(buy<C>(market, item_id, paid), sender(ctx))
     }
+
+    
     /// Purchase an item using a known Listing. Payment is done in Coin<C>.
     /// Amount paid must match the requested amount. If conditions are met,
     /// owner of the item gets the payment and buyer receives their item.
