@@ -1,7 +1,7 @@
 #[test_only]
 module suino::test_lottery{
     
-    use sui::test_scenario::{Self as test,next_tx,ctx};
+    use sui::test_scenario::{Self as test,next_tx,ctx,Scenario};
     use sui::coin::{Self,Coin};
     use sui::sui::{SUI};
     use suino::lottery::{Self,Lottery};
@@ -45,25 +45,25 @@ module suino::test_lottery{
         };
 
 
-        //no jackpot
+        //===============No Jackpot Scenario=========================
+        next_tx(scenario,owner);
+        {
+            jackpot(scenario);
+        };
+
+        //state check
         next_tx(scenario,owner);
         {
             let lottery = test::take_shared<Lottery>(scenario);
-            let random = test::take_shared<Random>(scenario);
-            let ownership = test::take_from_sender<Ownership>(scenario);
             let pool = test::take_shared<Pool>(scenario);
-            let pool_balance = pool::get_balance(&pool);
-            lottery::jackpot(&ownership,&mut random,&mut pool,&mut lottery,ctx(scenario));
             assert!(lottery::get_prize(&lottery) == 10000,0);
-            assert!(pool_balance == 100000,0);
-            test::return_to_sender(scenario,ownership);
+            assert!(pool::get_balance(&pool) == 100000,0);
+            test::return_shared(pool); 
             test::return_shared(lottery);
-            test::return_shared(random);
-            test::return_shared(pool);   
         };
 
         
-        //---------JACKPOT SCENARIO------------
+        //==============JACKPOT SCENARIO========================
         next_tx(scenario,user);
         {   
   
@@ -90,26 +90,22 @@ module suino::test_lottery{
         //jackpot
         next_tx(scenario,owner);
         {
-
-            let lottery = test::take_shared<Lottery>(scenario);
-            let random = test::take_shared<Random>(scenario);
-            let ownership = test::take_from_sender<Ownership>(scenario);
-            let pool = test::take_shared<Pool>(scenario);
-            
-            lottery::jackpot(&ownership,&mut random,&mut pool,&mut lottery,ctx(scenario));
-            assert!(lottery::get_prize(&lottery) == 0,0);
-            assert!(pool::get_balance(&pool) == 90000,0);
-            test::return_to_sender(scenario,ownership);
-            test::return_shared(lottery);
-            test::return_shared(random);
-            test::return_shared(pool);   
+            jackpot(scenario);
         };
 
-
+        //state check
+        next_tx(scenario,owner);    
+        {
+            let lottery = test::take_shared<Lottery>(scenario);
+            let pool = test::take_shared<Pool>(scenario);
+            assert!(lottery::get_prize(&lottery) == 0,0);
+            assert!(pool::get_balance(&pool) == 90000,0);
+            test::return_shared(pool); 
+            test::return_shared(lottery);
+        };
         //coin check
         next_tx(scenario,user);
         {
-            // use std::debug;
             let coin = test::take_from_sender<Coin<SUI>>(scenario);
             assert!(coin::value(&coin) == 5000,0);
             test::return_to_sender(scenario,coin);  
@@ -123,5 +119,20 @@ module suino::test_lottery{
         };
 
         test::end(scenario_val);
+    }
+
+    //============utils==================
+    fun jackpot(scenario:&mut Scenario){
+        let lottery = test::take_shared<Lottery>(scenario);
+        let random = test::take_shared<Random>(scenario);
+        let ownership = test::take_from_sender<Ownership>(scenario);
+        let pool = test::take_shared<Pool>(scenario);
+        
+        lottery::jackpot(&ownership,&mut random,&mut pool,&mut lottery,ctx(scenario));
+    
+        test::return_to_sender(scenario,ownership);
+        test::return_shared(lottery);
+        test::return_shared(random);
+        test::return_shared(pool);  
     }
 }
