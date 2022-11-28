@@ -23,6 +23,7 @@ module suino::lottery{
     struct Lottery has key{
         id:UID,
         tickets:VecMap<vector<u8>,vector<address>>,
+        latest_jackpot_number:vector<u8>,
         prize:u64,
         name:String,
         description:String,
@@ -40,6 +41,7 @@ module suino::lottery{
         let lottery = Lottery{
             id:object::new(ctx),
             tickets:map::empty<vector<u8>,vector<address>>(),
+            latest_jackpot_number:vector[0,0,0,0,0,0],
             prize:0,
             name:string::utf8(b"SUINO LOTTERY"),
             description:string::utf8(b"GAME PLAYER REWARD LOTTERY"),
@@ -65,7 +67,7 @@ module suino::lottery{
             vector::push_back(&mut jackpot_number,number);
             random::game_after_set_random(random,ctx);
         };       
-
+        lottery.latest_jackpot_number = jackpot_number;
         let exsitsJackpot = map::contains(&mut lottery.tickets,&jackpot_number);
         if (!exsitsJackpot){
             lottery.tickets =map::empty<vector<u8>,vector<address>>();
@@ -74,15 +76,16 @@ module suino::lottery{
 
         let jackpot_members = map::get_mut(&mut lottery.tickets,&jackpot_number);
           
-       
-        
+    
         let jackpot_count = vector::length(jackpot_members);
         let jackpot_amount = lottery.prize / jackpot_count;
+       
         while(!vector::is_empty(jackpot_members)){
             let jackpot_member = vector::pop_back(jackpot_members);
             let balance = pool::remove_pool(pool,jackpot_amount);
             transfer::transfer(coin::from_balance<SUI>(balance,ctx),jackpot_member);
         };
+       
         lottery.prize = 0;
         event::emit(JackpotEvent{
             jackpot_amount,
@@ -130,6 +133,7 @@ module suino::lottery{
         let lottery = Lottery{
             id:object::new(ctx),
             tickets:map::empty<vector<u8>,vector<address>>(),
+            latest_jackpot_number:vector[0,0,0,0,0,0],
             prize:0,
             name:string::utf8(b"SUINO LOTTERY"),
             description:string::utf8(b"GAME PLAYER REWARD LOTTERY"),
@@ -137,11 +141,14 @@ module suino::lottery{
 
         transfer::share_object(lottery);
     }
+
+    
     #[test_only]
     public fun test_lottery(prize:u64,ctx:&mut TxContext){
            let lottery = Lottery{
             id:object::new(ctx),
             tickets:map::empty<vector<u8>,vector<address>>(),
+            latest_jackpot_number:vector[0,0,0,0,0,0],
             prize,
             name:string::utf8(b"SUINO LOTTERY"),
             description:string::utf8(b"GAME PLAYER REWARD LOTTERY"),
