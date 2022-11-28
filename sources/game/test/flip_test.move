@@ -327,7 +327,7 @@ module suino::test_flip{
             test::return_shared(random);
             test::return_shared(flip);
     }
-
+    
     fun user():address{
         @0xA1
     }

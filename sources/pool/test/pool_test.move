@@ -4,8 +4,9 @@ module suino::pool_test{
   
     use suino::pool::{Self,Pool,Ownership};
     use suino::nft::{Self,SuinoNFTState};
-    use sui::test_scenario::{Self as test,next_tx,ctx};
+    use sui::test_scenario::{Self as test,next_tx,ctx,Scenario};
     use sui::balance::{Self};
+    use sui::transfer;
     use sui::sui::SUI;
     use sui::coin::{Self,Coin};
     
@@ -13,7 +14,7 @@ module suino::pool_test{
 
 
    #[test]
-    fun test_pool_module(){
+    fun test_pool(){
         let owner = @0xC0FFEE;
     
 
@@ -168,6 +169,8 @@ module suino::pool_test{
         test::end(scenario_val);
    }
 
+   
+
 
     #[test]
     fun reward_test(){
@@ -223,13 +226,101 @@ module suino::pool_test{
             
             let coin = test::take_from_sender<Coin<SUI>>(scenario);
     
-            let test_coin = coin::mint_for_testing<SUI>(33333,ctx(scenario));
-            assert!(coin::value(&coin) ==coin::value(&test_coin) ,0);
             
-            coin::destroy_for_testing(test_coin);
+            assert!(coin::value(&coin) ==33333 ,0);
+            
+            
             test::return_to_sender(scenario,coin);
         };
         test::end(scenario_val);
    }
 
+
+
+     #[test]
+    fun set_fee_percent_(){
+        let owner = @0xC0FFEE;
+    
+        let scenario_val = test::begin(owner);
+        let scenario = &mut scenario_val;
+
+        next_tx(scenario,owner);
+        {
+            pool::init_for_testing(ctx(scenario));
+        };
+        next_tx(scenario,owner);
+        {
+           let ownership = test::take_from_sender<Ownership>(scenario);
+           let pool = test::take_shared<Pool>(scenario);
+           let fee_percent = pool::get_fee_percent(&pool);
+           pool::set_fee_percent(&ownership,&mut pool,30);
+           let change_percent = pool::get_fee_percent(&pool);
+           assert!(fee_percent != change_percent,0);
+           assert!(change_percent == 30,0);
+           test::return_shared(pool);
+           test::return_to_sender(scenario,ownership);
+        };
+      
+        test::end(scenario_val);
+    }
+
+    #[test]
+    fun set_lottery_fee_percent_(){
+         let owner = @0xC0FFEE;
+    
+        let scenario_val = test::begin(owner);
+        let scenario = &mut scenario_val;
+
+        next_tx(scenario,owner);
+        {
+            pool::init_for_testing(ctx(scenario));
+        };
+        next_tx(scenario,owner);
+        {
+           let ownership = test::take_from_sender<Ownership>(scenario);
+           let pool = test::take_shared<Pool>(scenario);
+           let lottery_percent = pool::get_lottery_percent(&pool);
+           pool::set_lottery_percent(&ownership,&mut pool,30);
+           let change_percent = pool::get_lottery_percent(&pool);
+           assert!(lottery_percent != change_percent,0);
+           assert!(change_percent == 30,0);
+           test::return_shared(pool);
+           test::return_to_sender(scenario,ownership);
+        };
+        test::end(scenario_val);
+    }
+
+
+    #[test]
+    fun set_minimin_amount_(){
+        let owner = @0xC0FFEE;
+    
+        let scenario_val = test::begin(owner);
+        let scenario = &mut scenario_val;
+
+        next_tx(scenario,owner);
+        {
+            pool::init_for_testing(ctx(scenario));
+        };
+        next_tx(scenario,owner);
+        {
+           let ownership = test::take_from_sender<Ownership>(scenario);
+           let pool = test::take_shared<Pool>(scenario);
+           let minimum_bet = pool::get_minimum_bet(&pool);
+           pool::set_minimum_bet(&ownership,&mut pool,100000);
+           let change_minimum = pool::get_minimum_bet(&pool);
+           assert!(minimum_bet != change_minimum,0);
+           assert!(change_minimum == 100000,0);
+           test::return_shared(pool);
+           test::return_to_sender(scenario,ownership);
+        };
+        test::end(scenario_val);
+    }
+
+
+
+    fun mint(scenario:&mut Scenario,user:address,amount:u64){
+        let coin = coin::mint_for_testing<SUI>(amount,ctx(scenario));
+        transfer::transfer(coin,user);
+    }
 }

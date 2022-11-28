@@ -120,7 +120,7 @@ module suino::pool{
         pool.lottery_percent = percent;
     }
 
-     public(friend) entry fun set_minimum_amount(_:&Ownership,pool:&mut Pool,amount:u64){
+     public(friend) entry fun set_minimum_bet(_:&Ownership,pool:&mut Pool,amount:u64){
         pool.minimum_bet = amount;
     }
 
