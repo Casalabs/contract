@@ -4,6 +4,7 @@ module suino::player{
     use sui::transfer;
     use sui::dynamic_field;
     use sui::coin::{Self,Coin};
+    
     use suino::utils::{
         calculate_percent
     };
@@ -49,7 +50,7 @@ module suino::player{
 
 
     public entry fun split(player:&mut Player,amount:u64,ctx:&mut TxContext){
-        assert!(player.count >= amount,EInvalidAmount);
+        assert!(player.count > amount,EInvalidAmount);
         player.count = player.count - amount;
         let player = Player{
             id:object::new(ctx),
@@ -100,7 +101,7 @@ module suino::player{
         dynamic_field::add(&mut marketplace.id, item_id, listing);
     }
 
-         /// Call [`delist`] and transfer item to the sender.
+    /// Call [`delist`] and transfer item to the sender.
     public entry fun delist_and_take<C>(
         marketplace: &mut Marketplace,
         item_id: ID,
@@ -140,7 +141,7 @@ module suino::player{
         transfer::transfer(fee_coin,get_market_owner(market));
         transfer::transfer(buy<C>(market, item_id, paid), sender(ctx))
     }
-        /// Purchase an item using a known Listing. Payment is done in Coin<C>.
+    /// Purchase an item using a known Listing. Payment is done in Coin<C>.
     /// Amount paid must match the requested amount. If conditions are met,
     /// owner of the item gets the payment and buyer receives their item.
     public fun buy<C>(
@@ -151,28 +152,24 @@ module suino::player{
         let Listing<C> { item, ask, owner } = 
         dynamic_field::remove(&mut marketplace.id, item_id);
         assert!(ask == coin::value(&paid), EAmountIncorrect);
-
         transfer::transfer(paid, owner);
- 
         item
     }
   
 
-
-    //--------Market place Owner-------------
-    public entry fun set_market_fee_percent(market:&mut Marketplace,percent:u64,ctx:&mut TxContext){
-        assert!(sender(ctx) == market.owner,0);
-        market.fee_percent = percent;
-    }
-
     public fun get_market_fee_percent(market:&Marketplace):u64{
         market.fee_percent
     }
-
     public fun get_market_owner(market:&Marketplace):address{
         market.owner
     }
 
+
+    //--------Market place Owner-------------
+    public entry fun set_market_fee_percent(market:&mut Marketplace,percent:u64,ctx:&mut TxContext){
+        assert!(sender(ctx) == get_market_owner(market),ENotOwner);
+        market.fee_percent = percent;
+    }
 
 
     
