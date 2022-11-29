@@ -117,6 +117,7 @@ module suino::nft{
         nft:&SuinoNFT,
         coin:&mut Coin<SUI>,
         ctx:&mut TxContext){
+
         fee_deduct(state,coin,ctx);
         let nft_id = object::id(nft);
         set_state_nft_holder(state,nft_id,sender(ctx));
@@ -225,12 +226,6 @@ module suino::nft{
     // }
 
 
-    
-
-
-
-
-
     //===============SuinoNFT================
     /// Get the NFT's `name`
     public fun name(nft: &SuinoNFT): &string::String {
@@ -256,9 +251,15 @@ module suino::nft{
 
         state.owner = new_owner;
     }
+
+    
     public fun set_state_nft_holder(state:&mut SuinoNFTState,nft_id:ID,recipent:address){
         vec_map::remove<ID,address>(&mut state.holder,&nft_id);
         vec_map::insert<ID,address>(&mut state.holder,nft_id,recipent);
+    }
+
+    public entry fun set_fee(state:&mut SuinoNFTState,amount:u64){
+        state.fee = amount;
     }
 
     public fun get_owner(state:&SuinoNFTState):address{
