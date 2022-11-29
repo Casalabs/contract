@@ -1,7 +1,8 @@
 module suino::utils{
 
-  use std::vector;
+
   use sui::ecdsa;
+  use std::vector;
 
     public fun u64_from_vector(v:vector<u8>,epoch:u64):u64{
         let result = epoch;
@@ -26,20 +27,6 @@ module suino::utils{
     }
     
 
-    // public fun calculate_fee_decimal(amount:u64,fee_percent:u8,fee_scaling:u64) :u64{
-    //     // example 0.03 = 3/10000
-    //     //if amount is smaller than 10000, fee is 300
-    //     if (amount == 0 ){
-    //         return 0
-    //     };
-    //     if (amount <= fee_scaling){
-    //         return 300
-    //     };
-    //     let (amount,fee_percent) = ((amount as u128),(fee_percent as u128));
-
-    //     let result = (amount  * fee_percent) / (fee_scaling as u128);
-    //     (result as u64)
-    // }
 
     public fun vector_combine(vector1:vector<u8>,vector2:vector<u8>):vector<u8>{
         loop{
@@ -54,7 +41,18 @@ module suino::utils{
     public fun keccak256(data:vector<u8>):vector<u8>{
         ecdsa::keccak256(&data)
     }
-    
+   
 
 }
  
+#[test_only]
+module suino::test_utils{
+    use sui::test_scenario::{ctx,Scenario};
+    use sui::transfer;
+    use sui::coin;
+    use sui::sui::SUI;
+    public fun coin_mint(scenario:&mut Scenario,user:address,amount:u64){
+        let coin = coin::mint_for_testing<SUI>(amount,ctx(scenario));
+        transfer::transfer(coin,user);
+    }
+}

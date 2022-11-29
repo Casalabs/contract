@@ -8,7 +8,7 @@ module suino::test_lottery{
     use suino::player::{Self,Player};
     use suino::pool::{Self,Pool,Ownership};
     use suino::random::{Self,Random};
-    use std::debug;
+    // use std::debug;
     
     #[test]
     fun test_lottery(){
@@ -113,7 +113,7 @@ module suino::test_lottery{
         next_tx(scenario,user);
         {
             let coin = test::take_from_sender<Coin<SUI>>(scenario);
-            debug::print(&coin::value(&coin));
+            
             assert!(coin::value(&coin) == 5000,0);
             test::return_to_sender(scenario,coin);  
         };
@@ -121,7 +121,7 @@ module suino::test_lottery{
         next_tx(scenario,user2);
         {
             let coin = test::take_from_sender<Coin<SUI>>(scenario);
-            debug::print(&coin::value(&coin));
+            
             assert!(coin::value(&coin) == 5000,0);
             test::return_to_sender(scenario,coin);  
         };
@@ -155,7 +155,6 @@ module suino::test_lottery{
             let player = test::take_from_sender<Player>(scenario);
             let numbers = vector[vector[1,2,3,4,5,6],vector[1,2,3,4,5,7],vector[2,3,4,5,6,7]];
             lottery::buy_ticket(&mut lottery,&mut player,numbers,ctx(scenario));
-
             test::return_to_sender(scenario,player);
             test::return_shared(lottery);
         };

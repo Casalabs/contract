@@ -5,10 +5,10 @@ module suino::player_test{
     use sui::coin::{Self,Coin};
     use sui::sui::SUI;
     use suino::player::{Self,Player,Marketplace};
-    
+     use suino::test_utils::{coin_mint};
 
     #[test]
-    fun player_test(){
+    fun player_market_place_(){
 
         let user = @0xA1;
         let user2 = @0xA2;
@@ -16,15 +16,17 @@ module suino::player_test{
         let scenario = &mut scenario_val;
         let id:ID;
         next_tx(scenario,user);
-        {
+        {   
             player::test_create(ctx(scenario),10);
+            coin_mint(scenario,user,100_000);
+            coin_mint(scenario,user2,100_000);
         };
 
         //split test
         next_tx(scenario,user);
         {   
             let player = test::take_from_sender<Player>(scenario);
-          
+
             player::split(&mut player,5,ctx(scenario));
             assert!(player::get_count(&player) == 5,0);
             test::return_to_sender(scenario,player);
@@ -43,7 +45,7 @@ module suino::player_test{
         //list test
         next_tx(scenario,user);
         {
-            id = list(scenario);
+           id = list(scenario,50000);
         };
 
         //delist test
@@ -55,31 +57,27 @@ module suino::player_test{
         //delist check
         next_tx(scenario,user);
         {
-            let player = test::take_from_sender<Player>(scenario);
-            assert!(object::id(&player) == id,0);
-            test::return_to_sender(scenario,player);
+            ownership_check(scenario,id);
         };
 
 
         //list
         next_tx(scenario,user);
         {   
-           id = list(scenario);
+            list(scenario,50000);
         };
 
 
         //buy test
         next_tx(scenario,user2);
         {
-            buy_and_take(id,scenario);
+            buy_and_take(scenario,id,50000);
         };
 
         //object check
         next_tx(scenario,user2);
         {
-            let player = test::take_from_sender<Player>(scenario);
-            assert!(object::id(&player) == id,0);
-            test::return_to_sender(scenario,player);
+            ownership_check(scenario,id);
         };
 
         test::end(scenario_val);
@@ -123,7 +121,7 @@ module suino::player_test{
 
         next_tx(scenario,user);
         {
-            id = list(scenario);
+            id = list(scenario,50000);
         };
 
         next_tx(scenario,user2);
@@ -136,25 +134,34 @@ module suino::player_test{
 
 
 
-    fun buy_and_take(id:ID,scenario:&mut Scenario){
+    fun buy_and_take(scenario:&mut Scenario,id:ID,amount:u64){
         let market = test::take_shared<Marketplace>(scenario);
-        player::buy_and_take(&mut market,id,coin::mint_for_testing<Coin<SUI>>(5,ctx(scenario)),ctx(scenario));
+        let coin = test::take_from_sender<Coin<SUI>>(scenario);
+        let paid_coin = coin::split(&mut coin,amount,ctx(scenario));
+        player::buy_and_take(&mut market,id,paid_coin,ctx(scenario));
+        test::return_to_sender(scenario,coin);
         test::return_shared(market);
     }
 
 
-    fun list(scenario:&mut Scenario):ID{
+    fun list(scenario:&mut Scenario,amount:u64):ID{
         let player = test::take_from_sender<Player>(scenario);
         let id = object::id(&player);
         let market = test::take_shared<Marketplace>(scenario);
-        player::list<Coin<SUI>>(&mut market,player,5,ctx(scenario));
+        player::list(&mut market,player,amount,ctx(scenario));
         test::return_shared(market);
         id
     }
     fun delist(id:ID,scenario:&mut Scenario){
         let market = test::take_shared<Marketplace>(scenario);
-        player::delist_and_take<Coin<SUI>>(&mut market,id,ctx(scenario));
+        player::delist_and_take(&mut market,id,ctx(scenario));
         test::return_shared(market);
+    }
+
+    fun ownership_check(scenario:&mut Scenario,id:ID){
+        let player = test::take_from_sender<Player>(scenario);
+        assert!(object::id(&player) == id,0);
+        test::return_to_sender(scenario,player);
     }
 }
 

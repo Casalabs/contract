@@ -2,6 +2,7 @@ module suino::player{
     use sui::object::{Self,UID,ID};
     use sui::tx_context::{TxContext,sender};
     use sui::transfer;
+    use sui::sui::SUI;
     use sui::dynamic_field;
     use sui::coin::{Self,Coin};
     
@@ -23,9 +24,9 @@ module suino::player{
         owner:address,
         fee_percent:u64,
     }
-    struct Listing<phantom C> has store {
+    struct Listing has store {
         item: Player,
-        ask: u64, // Coin<C>
+        ask: u64, 
         owner: address,
     }
 
@@ -86,14 +87,14 @@ module suino::player{
 
     //--------MarketPlace User-----------------
 
-      public entry fun list<C>(
+      public entry fun list(
         marketplace: &mut Marketplace,
         item: Player,
         ask: u64,
         ctx: &mut TxContext
     ) {
         let item_id = object::id(&item);
-        let listing = Listing<C> {
+        let listing = Listing {
             item,
             ask,
             owner: sender(ctx),
@@ -103,21 +104,21 @@ module suino::player{
 
 
     /// Call [`delist`] and transfer item to the sender.
-    public entry fun delist_and_take<C>(
+    public entry fun delist_and_take(
         marketplace: &mut Marketplace,
         item_id: ID,
         ctx: &mut TxContext
     ) {
-        let item = delist<C>(marketplace, item_id, ctx);
+        let item = delist(marketplace, item_id, ctx);
         transfer::transfer(item, sender(ctx));
     }
 
-    public fun delist<C>(
+    public fun delist(
         marketplace: &mut Marketplace,
         item_id: ID,
         ctx: &mut TxContext
     ): Player {
-        let Listing<C> { item, ask: _, owner } =
+        let Listing { item, ask: _, owner } =
         dynamic_field::remove(&mut marketplace.id, item_id);
 
         assert!(sender(ctx) == owner, ENotOwner);
@@ -127,37 +128,27 @@ module suino::player{
 
 
     /// Call [`buy`] and transfer item to the sender.
-    public entry fun buy_and_take<C>(
+    public entry fun buy_and_take(
         market: &mut Marketplace,
         item_id: ID,
-        paid: Coin<C>,
+        paid: Coin<SUI>,
         ctx: &mut TxContext
     ) {
-  
+        let Listing{ item, ask, owner } = 
+        dynamic_field::remove(&mut market.id, item_id);
+        assert!(ask == coin::value(&paid), EAmountIncorrect);
+        
         //paid : 5% -> owner address
-
         let fee_amt = calculate_percent(coin::value(&paid),(get_market_fee_percent(market) as u8));
         let fee_coin = coin::split(&mut paid,fee_amt,ctx);
-        
         transfer::transfer(fee_coin,get_market_owner(market));
-        transfer::transfer(buy<C>(market, item_id, paid), sender(ctx))
+
+        transfer::transfer(paid, owner);
+        transfer::transfer(item, sender(ctx))
     }
 
     
-    /// Purchase an item using a known Listing. Payment is done in Coin<C>.
-    /// Amount paid must match the requested amount. If conditions are met,
-    /// owner of the item gets the payment and buyer receives their item.
-    public fun buy<C>(
-        marketplace: &mut Marketplace,
-        item_id: ID,
-        paid: Coin<C>,
-    ): Player {
-        let Listing<C> { item, ask, owner } = 
-        dynamic_field::remove(&mut marketplace.id, item_id);
-        assert!(ask == coin::value(&paid), EAmountIncorrect);
-        transfer::transfer(paid, owner);
-        item
-    }
+   
   
 
     public fun get_market_fee_percent(market:&Marketplace):u64{
