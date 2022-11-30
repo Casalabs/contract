@@ -30,7 +30,7 @@ module suino::player{
         item: Player,
         ask: u64, 
         owner: address,
-    }
+    }   
 
     fun init(ctx:&mut TxContext){
         let marketplace = Marketplace{

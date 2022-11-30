@@ -8,6 +8,7 @@ module suino::race{
     use sui::transfer;
     use sui::coin::{Self,Coin};
     use sui::tx_context::{TxContext,sender};
+    use sui::event;
     use suino::core::{Self,Core,Ownership};
     use suino::random::{Self,Random};
     use suino::player::{Self,Player};
@@ -18,10 +19,18 @@ module suino::race{
         id:UID,
         name:String,
         description:String,
+        round:u64,
         participants:vector<address>,
         bet_state:VecMap<u64,vector<address>>,
         balance:Balance<SUI>,
+    
         minimum_balance:u64, //suino minimum betting amount * 10
+    }
+
+    struct JackpotEvent has copy,drop{
+        round:u64,
+        jackpot_amount:u64,
+        jackpot_addresses:vector<address>,
     }
 
     const EInvalidBetValue:u64 = 0;
@@ -32,9 +41,11 @@ module suino::race{
             id:object::new(ctx),
             name:string::utf8(b"Suino Race Game"),
             description:string::utf8(b"Ten pigs race. Predict who will win."),
+            round:1,
             participants:vector::empty<address>(),
             bet_state:map::empty<u64,vector<address>>(),
             balance:balance::zero<SUI>(),
+            
             minimum_balance:10000,
         };
         transfer::share_object(race);
@@ -106,7 +117,12 @@ module suino::race{
 
         //only remaining balance treat
         core::add_pool(core,balance);
-
+        
+        event::emit(JackpotEvent{
+             round:race.round,
+             jackpot_amount:jackpot_amt,
+             jackpot_addresses:jackpot_members,
+        });
         //participants and state init
         set_init(race);
     }
@@ -158,6 +174,7 @@ module suino::race{
     public fun set_init(race:&mut Race){
         race.bet_state = map::empty<u64,vector<address>>();
         race.participants = vector::empty<address>();
+        race.round = race.round + 1;
     }
 
 
@@ -167,6 +184,7 @@ module suino::race{
             id:object::new(ctx),
             name:string::utf8(b"Suino Race Game"),
             description:string::utf8(b"Ten pigs race. Predict who will win."),
+            round:1,
             participants:vector::empty<address>(),
             bet_state:map::empty<u64,vector<address>>(),
             balance:balance::zero<SUI>(),
