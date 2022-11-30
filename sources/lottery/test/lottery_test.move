@@ -6,7 +6,7 @@ module suino::test_lottery{
     use sui::sui::{SUI};
     use suino::lottery::{Self,Lottery};
     use suino::player::{Self,Player};
-    use suino::pool::{Self,Pool,Ownership};
+    use suino::core::{Self,Core,Ownership};
     use suino::random::{Self,Random};
     // use std::debug;
     
@@ -56,9 +56,9 @@ module suino::test_lottery{
         next_tx(scenario,owner);
         {
             let lottery = test::take_shared<Lottery>(scenario);
-            let pool = test::take_shared<Pool>(scenario);
+            let pool = test::take_shared<Core>(scenario);
             assert!(lottery::get_prize(&lottery) == 10000,0);
-            assert!(pool::get_balance(&pool) == 100000,0);
+            assert!(core::get_balance(&pool) == 100000,0);
             test::return_shared(pool);
             test::return_shared(lottery);
         };
@@ -100,10 +100,10 @@ module suino::test_lottery{
         next_tx(scenario,owner);    
         {
             let lottery = test::take_shared<Lottery>(scenario);
-            let pool = test::take_shared<Pool>(scenario);
+            let pool = test::take_shared<Core>(scenario);
 
             assert!(lottery::get_prize(&lottery) == 0,0);
-            assert!(pool::get_balance(&pool) == 90000,0);
+            assert!(core::get_balance(&pool) == 90000,0);
 
             test::return_shared(pool); 
             test::return_shared(lottery);
@@ -200,7 +200,7 @@ module suino::test_lottery{
         let lottery = test::take_shared<Lottery>(scenario);
         let random = test::take_shared<Random>(scenario);
         let ownership = test::take_from_sender<Ownership>(scenario);
-        let pool = test::take_shared<Pool>(scenario);
+        let pool = test::take_shared<Core>(scenario);
 
         lottery::jackpot(&ownership,&mut random,&mut pool,&mut lottery,ctx(scenario));
 
@@ -212,7 +212,7 @@ module suino::test_lottery{
 
     fun init_(scenario:&mut Scenario){
         lottery::test_lottery(10000,ctx(scenario));
-        pool::test_pool(5,100000,1000,ctx(scenario));
+        core::test_pool(5,100000,1000,ctx(scenario));
         random::test_random(b"casino",ctx(scenario));
     }
 }

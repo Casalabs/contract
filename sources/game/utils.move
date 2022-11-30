@@ -3,7 +3,7 @@ module suino::game_utils{
     use sui::balance::{Self,Balance};
     use sui::sui::SUI;
     use sui::tx_context::{TxContext};
-    use suino::pool::{Self,Pool};
+    use suino::core::{Self,Core};
     use suino::lottery::{Self,Lottery};
     use suino::random::{Self,Random};
     use suino::utils::{
@@ -14,8 +14,8 @@ module suino::game_utils{
     const EInvalidValue:u64 = 1;
 
 
-    public fun lose_game_lottery_update(pool:&Pool,lottery:&mut Lottery,death_amount:u64){
-        let lottery_percent = pool::get_lottery_percent(pool);
+    public fun lose_game_lottery_update(pool:&Core,lottery:&mut Lottery,death_amount:u64){
+        let lottery_percent = core::get_lottery_percent(pool);
         lottery::prize_up(lottery,calculate_percent(death_amount,lottery_percent));
     }
 
@@ -25,11 +25,11 @@ module suino::game_utils{
         assert!(compare_percent <= 10,EMaximumBet);
     }
 
-    public fun fee_deduct(pool:&mut Pool,balance:&mut Balance<SUI>,amount:u64):u64{
-         let fee_percent = pool::get_fee_percent(pool);
+    public fun fee_deduct(pool:&mut Core,balance:&mut Balance<SUI>,amount:u64):u64{
+         let fee_percent = core::get_fee_percent(pool);
          let fee_amt = calculate_percent(amount,fee_percent); 
          let fee = balance::split<SUI>(balance,fee_amt);  
-         pool::add_reward(pool,fee);
+         core::add_reward(pool,fee);
          fee_amt
     }
 

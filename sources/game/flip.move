@@ -1,16 +1,17 @@
 module suino::flip{
     use std::vector;
     use std::string::{Self,String};
+
     use sui::object::{Self,UID};
-    use sui::tx_context::{TxContext};
+    use sui::tx_context::{TxContext,sender};
     use sui::transfer;
     use sui::coin::{Self,Coin};
-    
     use sui::balance::{Self};
     use sui::sui::SUI;
-    
+    use sui::event;
+
     use suino::random::{Random};
-    use suino::pool::{Self,Pool};
+    use suino::core::{Self,Core};
     use suino::player::{Self,Player};
     use suino::lottery::{Lottery};
 
@@ -29,21 +30,20 @@ module suino::flip{
         id:UID,
         name:String,
         description:String,
-        
     }
     
-    // struct FlipEvent has copy,drop{
-    //     is_jackpot:bool,
-    //     betting_amount:u64,
-    //     jackpot_amount:u64,
-    // }
+    struct JackpotEvent has copy,drop{
+        betting_amount:u64,
+        jackpot_amount:u64,
+        jackpot_address:address,
+    }
     
     
     fun init(ctx:&mut TxContext){
         let flip = Flip{
             id:object::new(ctx),
-            name:string::utf8(b"Suino"),
-            description:string::utf8(b"Coin Flip"),
+            name:string::utf8(b"Suino Coin Flip"),
+            description:string::utf8(b"can get at least 2 to 8 times."),
         };
         transfer::share_object(flip);
     }
@@ -52,7 +52,7 @@ module suino::flip{
     public entry fun game(
         _:&Flip,
         player:&mut Player,
-        pool:&mut Pool,
+        core:&mut Core,
         random:&mut Random,
         lottery:&mut Lottery,
         coin:&mut Coin<SUI>,
@@ -62,8 +62,8 @@ module suino::flip{
     {
         
         assert!(coin::value(coin) >= bet_amount,EInvalidAmount);
-        assert!(bet_amount >= pool::get_minimum_bet(pool),EInvalidAmount);
-        check_maximum_bet_amount(bet_amount,pool::get_balance(pool));
+        assert!(bet_amount >= core::get_minimum_bet(core),EInvalidAmount);
+        check_maximum_bet_amount(bet_amount,core::get_balance(core));
         assert!(vector::length(&value) > 0 && vector::length(&value) < 4,EInvalidValue);
       
     
@@ -76,11 +76,11 @@ module suino::flip{
          let bet_amt = balance::value(&bet); 
 
 
-          //reward -> nft holder , pool + sui
+          //reward -> nft holder , core + sui
         {
-            let fee_amt = fee_deduct(pool,&mut bet,bet_amt);
+            let fee_amt = fee_deduct(core,&mut bet,bet_amt);
             bet_amt = bet_amt - fee_amt; 
-            pool::add_pool(pool,bet); 
+            core::add_pool(core,bet); 
         };
         
         //player object count_up
@@ -92,13 +92,18 @@ module suino::flip{
         let jackpot_amount = calculate_jackpot(random,value,bet_amt,ctx);
         //lottery prize up!
         if (jackpot_amount == 0){
-            lose_game_lottery_update(pool,lottery,bet_amt);
+            lose_game_lottery_update(core,lottery,bet_amt);
             return
         };
            
-        let jackpot = pool::remove_pool(pool,jackpot_amount); //balance<SUI>
+        let jackpot = core::remove_pool(core,jackpot_amount); //balance<SUI>
         
         balance::join(coin_balance,jackpot);
+        event::emit(JackpotEvent{
+            betting_amount:bet_amount,
+            jackpot_amount:jackpot_amount,
+            jackpot_address:sender(ctx),
+        })
     }
        
     

@@ -1,6 +1,9 @@
 
 //tracking version
 module suino::lottery{
+    use std::string::{Self,String};
+    use std::vector;
+
     use sui::object::{Self,UID};
     use sui::sui::SUI;
     use sui::vec_map::{Self as map,VecMap};
@@ -9,11 +12,10 @@ module suino::lottery{
     use sui::coin;
     use sui::event;
 
-    use std::string::{Self,String};
-    use std::vector;
+
 
     use suino::player::{Self,Player};
-    use suino::pool::{Self,Pool,Ownership};
+    use suino::core::{Self,Core,Ownership};
     use suino::random::{Self,Random};
     #[test_only]
     friend suino::test_lottery;
@@ -22,11 +24,11 @@ module suino::lottery{
     const EInvalidValue:u64 = 1;
     struct Lottery has key{
         id:UID,
+        name:String,
+        description:String,
         tickets:VecMap<vector<u8>,vector<address>>,
         latest_jackpot_number:vector<u8>,
         prize:u64,
-        name:String,
-        description:String,
     }
 
     struct JackpotEvent has copy,drop{
@@ -40,11 +42,12 @@ module suino::lottery{
         
         let lottery = Lottery{
             id:object::new(ctx),
+            name:string::utf8(b"SUINO LOTTERY"),
+            description:string::utf8(b"GAME PLAYER REWARD LOTTERY"),
             tickets:map::empty<vector<u8>,vector<address>>(),
             latest_jackpot_number:vector[0,0,0,0,0,0],
             prize:0,
-            name:string::utf8(b"SUINO LOTTERY"),
-            description:string::utf8(b"GAME PLAYER REWARD LOTTERY"),
+         
         };
 
         transfer::share_object(lottery);
@@ -54,7 +57,7 @@ module suino::lottery{
     public(friend) entry fun jackpot(
         _:&Ownership,
         random:&mut Random,
-        pool:&mut Pool,
+        pool:&mut Core,
         lottery:&mut Lottery,
         ctx:&mut TxContext){
 
@@ -82,7 +85,7 @@ module suino::lottery{
        
         while(!vector::is_empty(jackpot_members)){
             let jackpot_member = vector::pop_back(jackpot_members);
-            let balance = pool::remove_pool(pool,jackpot_amount);
+            let balance = core::remove_pool(pool,jackpot_amount);
             transfer::transfer(coin::from_balance<SUI>(balance,ctx),jackpot_member);
         };
        
@@ -132,11 +135,12 @@ module suino::lottery{
     public fun init_for_testing(ctx:&mut TxContext){
         let lottery = Lottery{
             id:object::new(ctx),
+            name:string::utf8(b"SUINO LOTTERY"),
+            description:string::utf8(b"GAME PLAYER REWARD LOTTERY"),
             tickets:map::empty<vector<u8>,vector<address>>(),
             latest_jackpot_number:vector[0,0,0,0,0,0],
             prize:0,
-            name:string::utf8(b"SUINO LOTTERY"),
-            description:string::utf8(b"GAME PLAYER REWARD LOTTERY"),
+        
         };
 
         transfer::share_object(lottery);
@@ -147,11 +151,12 @@ module suino::lottery{
     public fun test_lottery(prize:u64,ctx:&mut TxContext){
            let lottery = Lottery{
             id:object::new(ctx),
+            name:string::utf8(b"SUINO LOTTERY"),
+            description:string::utf8(b"GAME PLAYER REWARD LOTTERY"),
             tickets:map::empty<vector<u8>,vector<address>>(),
             latest_jackpot_number:vector[0,0,0,0,0,0],
             prize,
-            name:string::utf8(b"SUINO LOTTERY"),
-            description:string::utf8(b"GAME PLAYER REWARD LOTTERY"),
+          
         };
 
         transfer::share_object(lottery);

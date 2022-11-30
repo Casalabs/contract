@@ -1,11 +1,11 @@
 module suino::nft{
-
+    
+    use std::string::{Self,String};
     use sui::url::{Self,Url};
     use sui::tx_context::{Self,TxContext,sender};
     use sui::vec_map::{Self,VecMap};
     use sui::transfer;
     use sui::balance;
-    use std::string::{Self,String};
     use sui::object::{Self,ID,UID};
     use sui::sui::SUI;
     use sui::event;
@@ -14,6 +14,7 @@ module suino::nft{
     use suino::utils::{
         calculate_percent
     };
+    
 
        // For when amount paid does not match the expected.
     const EAmountIncorrect: u64 = 0;
@@ -36,9 +37,12 @@ module suino::nft{
     }
     struct SuinoNFTState has key{
         id:UID,
+        name:String,
+        description:String,
         owner:address,
         holder:VecMap<ID,address>,
         fee:u64,
+     
     }
 
     struct MintNFTEvent has copy, drop {
@@ -53,7 +57,10 @@ module suino::nft{
     //marketplace
     struct Marketplace has key {
         id: UID,
+        name:String,
+        description:String,
         fee_percent:u8,
+     
     }
 
     
@@ -71,10 +78,14 @@ module suino::nft{
             owner:sender(ctx),
             holder:vec_map::empty<ID,address>(),
             fee:10000,
+            name:string::utf8(b"SuinoNFT State"),
+            description:string::utf8(b"Suino NFT hold Tracking"),
         };
        
         let marketplace = Marketplace { 
             id:object::new(ctx),
+            name:string::utf8(b"Suino NFT Marketplace"),
+            description:string::utf8(b"SuinoNFT Collection Market"),
             fee_percent:5,
          };
         transfer::share_object(marketplace);
@@ -111,8 +122,14 @@ module suino::nft{
         transfer::transfer(nft, sender);
     }
 
+    // entry fun burn(
+    //     state:&mut SunioNFTState,
+    //     nft:SuinoNFT,
+        
+    // )
 
-    public entry fun claim_fee_membership(
+
+    entry fun claim_fee_membership(
         state:&mut SuinoNFTState,
         nft:&SuinoNFT,
         coin:&mut Coin<SUI>,
@@ -206,24 +223,7 @@ module suino::nft{
         transfer::transfer(item, sender(ctx))
     }
    
-    // public fun buy<C>(
-    //     marketplace: &mut Marketplace,
-    //     state:&mut SuinoNFTState,
-    //     item_id: ID,
-    //     paid: Coin<C>,
-    //     ctx:&mut TxContext
-    // ): SuinoNFT {
 
-    //     let Listing<C> { item, ask, owner } =
-    //     dynamic_field::remove(&mut marketplace.id, item_id);
-    //     assert!(ask == coin::value(&paid), EAmountIncorrect);
-    //     let fee_amt = calculate_percent(coin::value(&paid),get_fee_percent(marketplace));
-    //     let fee_coin = coin::split(&mut paid,fee_amt,ctx);
-    //     transfer::transfer(fee_coin,get_owner(state));
-    //     transfer::transfer(paid, owner);
- 
-    //     item
-    // }
 
 
     //===============SuinoNFT================
@@ -258,7 +258,7 @@ module suino::nft{
         vec_map::insert<ID,address>(&mut state.holder,nft_id,recipent);
     }
 
-    public entry fun set_fee(state:&mut SuinoNFTState,amount:u64){
+    entry fun set_fee(state:&mut SuinoNFTState,amount:u64){
         state.fee = amount;
     }
 
@@ -285,9 +285,6 @@ module suino::nft{
         market.fee_percent
     }
 
-    public fun get_id(market:&mut Marketplace):&mut UID{
-        &mut market.id
-    }
     
     //==============Utils===========================
     fun fee_deduct(state:&mut SuinoNFTState,coin:&mut Coin<SUI>,ctx:&mut TxContext){
@@ -302,6 +299,8 @@ module suino::nft{
     public fun init_for_testing(ctx:&mut TxContext){
         let state = SuinoNFTState{
             id:object::new(ctx),
+            name:string::utf8(b"SuinoNFT State"),
+            description:string::utf8(b"Suino NFT hold Tracking"),
             owner:tx_context::sender(ctx),
             holder:vec_map::empty<ID,address>(),
             fee:100000,
@@ -309,6 +308,8 @@ module suino::nft{
        
         let marketplace = Marketplace { 
             id:object::new(ctx),
+            name:string::utf8(b"Suino NFT Marketplace"),
+            description:string::utf8(b"SuinoNFT Collection Market"),
             fee_percent:5,
          };
         transfer::share_object(marketplace);

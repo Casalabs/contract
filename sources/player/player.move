@@ -1,4 +1,5 @@
 module suino::player{
+    use std::string::{Self,String};
     use sui::object::{Self,UID,ID};
     use sui::tx_context::{TxContext,sender};
     use sui::transfer;
@@ -16,6 +17,7 @@ module suino::player{
     
     struct Player has key,store{
         id:UID,
+        name:String,
         count:u64,
     }
     
@@ -44,6 +46,7 @@ module suino::player{
     public entry fun create(ctx:&mut TxContext){
         let player = Player{
             id:object::new(ctx),
+            name:string::utf8(b"Suino Lottery Ticket"),
             count:0,
         };
         transfer::transfer(player,sender(ctx));
@@ -55,6 +58,7 @@ module suino::player{
         player.count = player.count - amount;
         let player = Player{
             id:object::new(ctx),
+            name:string::utf8(b"Suino Lottery Ticket"),
             count:amount
         };
         transfer::transfer(player,sender(ctx));
@@ -62,14 +66,14 @@ module suino::player{
 
 
     public entry fun join(self:&mut Player,player:Player){
-        let Player {id,count} = player;
+        let Player {id,name:_,count} = player;
         object::delete(id);
         self.count = self.count + count;
     }
 
 
     public entry fun delete(player:Player){
-        let Player{id,count : _} = player;
+        let Player{id,name:_,count : _} = player;
         object::delete(id);
     }
 
@@ -171,6 +175,7 @@ module suino::player{
     public fun test_create(ctx:&mut TxContext,count:u64){
         let player = Player{
             id:object::new(ctx),
+            name:string::utf8(b"Suino Lottery Ticket"),
             count,
         };
         let marketplace = Marketplace{
