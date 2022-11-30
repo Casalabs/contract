@@ -28,10 +28,12 @@ module suino::lottery{
         description:String,
         tickets:VecMap<vector<u8>,vector<address>>,
         latest_jackpot_number:vector<u8>,
+        round:u64,
         prize:u64,
     }
 
     struct JackpotEvent has copy,drop{
+        jackpot_round:u64,
         jackpot_amount:u64,
         jackpot_number:vector<u8>,
         jackpot_members:vector<address>,
@@ -45,9 +47,9 @@ module suino::lottery{
             name:string::utf8(b"SUINO LOTTERY"),
             description:string::utf8(b"GAME PLAYER REWARD LOTTERY"),
             tickets:map::empty<vector<u8>,vector<address>>(),
-            latest_jackpot_number:vector[0,0,0,0,0,0],
+            round:1,
+            latest_jackpot_number:vector::empty(),
             prize:0,
-         
         };
 
         transfer::share_object(lottery);
@@ -91,6 +93,7 @@ module suino::lottery{
        
         lottery.prize = 0;
         event::emit(JackpotEvent{
+            jackpot_round:lottery.round,
             jackpot_amount,
             jackpot_number,
             jackpot_members:*jackpot_members,
@@ -138,7 +141,8 @@ module suino::lottery{
             name:string::utf8(b"SUINO LOTTERY"),
             description:string::utf8(b"GAME PLAYER REWARD LOTTERY"),
             tickets:map::empty<vector<u8>,vector<address>>(),
-            latest_jackpot_number:vector[0,0,0,0,0,0],
+            latest_jackpot_number:vector::empty(),
+            round:1,
             prize:0,
         
         };
@@ -154,7 +158,8 @@ module suino::lottery{
             name:string::utf8(b"SUINO LOTTERY"),
             description:string::utf8(b"GAME PLAYER REWARD LOTTERY"),
             tickets:map::empty<vector<u8>,vector<address>>(),
-            latest_jackpot_number:vector[0,0,0,0,0,0],
+            latest_jackpot_number:vector::empty(),
+            round:1,
             prize,
           
         };

@@ -186,5 +186,14 @@ module suino::player{
         transfer::transfer(player,sender(ctx));
         transfer::share_object(marketplace);
     }
+    #[test_only]
+    public fun test_only_player(ctx:&mut TxContext,recipeint:address,count:u64){
+        let player = Player{
+            id:object::new(ctx),
+            name:string::utf8(b"Suino Lottery Ticket"),
+            count,
+        };
+        transfer::transfer(player,recipeint);
+    }
 }
 

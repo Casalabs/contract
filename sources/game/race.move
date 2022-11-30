@@ -10,6 +10,7 @@ module suino::race{
     use sui::tx_context::{TxContext,sender};
     use suino::core::{Self,Core,Ownership};
     use suino::random::{Self,Random};
+    use suino::player::{Self,Player};
     use suino::game_utils::{
         fee_deduct,
     };
@@ -38,18 +39,32 @@ module suino::race{
         };
         transfer::share_object(race);
     }
-    
-    public entry fun bet(race:&mut Race,core:&mut Core,random:&mut Random,coin:&mut Coin<SUI>,bet_value:u64,ctx:&mut TxContext){
+  
+
+
+    public entry fun bet(
+        race:&mut Race,
+        core:&mut Core,
+        random:&mut Random,
+        player:&mut Player,
+        coin:&mut Coin<SUI>,
+        bet_value:u64,
+        ctx:&mut TxContext)
+    {
         assert!(bet_value < 11,EInvalidBetValue);
         assert!(coin::value(coin) >= core::get_minimum_bet(core),ENotEnoughBalance);
         let coin_balance = coin::balance_mut(coin);
         let bet = balance::split(coin_balance,core::get_minimum_bet(core));
+        player::count_up(player);
         fee_deduct(core,&mut bet);
         add_balance(race,bet);
         set_participants(race,ctx);
         set_bet_state(race,bet_value,ctx);
         random::game_after_set_random(random,ctx);
     }
+
+
+
 
     public entry fun jackpot(_:&Ownership,race:&mut Race,core:&mut Core,random:&mut Random,ctx:&mut TxContext){
 
@@ -66,7 +81,6 @@ module suino::race{
         };
 
       
-        
         let balance = remove_all_balance(race);
 
         //exsists_jackpot = false == no_jackpot
@@ -101,7 +115,10 @@ module suino::race{
         race.minimum_balance = amount;
     }    
    
-
+    entry fun set_description(_:&Ownership,race:&mut Race,desc:vector<u8>){
+        let string = string::utf8(desc);
+        race.description = string;
+    }
 
     // public get_balance(race:&Race):
     //===========mut==============
@@ -143,13 +160,6 @@ module suino::race{
         race.participants = vector::empty<address>();
     }
 
-
-    // public fun fee_deduct_balance(race:&mut Race,core:&mut Core):Balance<SUI>{
-    //     let balance_amt = get_balance(race);
-    //     let balance = remove_balance(race,balance_amt);
-    //     fee_deduct(core,&mut balance);
-    //     balance
-    // }
 
     #[test_only]
     public fun init_for_testing(ctx:&mut TxContext){
