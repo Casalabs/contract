@@ -12,7 +12,7 @@ module suino::core{
 
 
     #[test_only]
-    friend suino::pool_test;
+    friend suino::core_test;
 
     const EZeroAmount:u64 = 0;
     const EOnlyOwner:u64 = 1;
@@ -25,10 +25,10 @@ module suino::core{
         id:UID,
         name:String,
         description:String,
-        balance:Balance<SUI>,
-        fee_percent:u8,
-        reward_pool:Balance<SUI>,
+        pool:Balance<SUI>,
+        gaming_fee_percent:u8,
         minimum_bet:u64,
+        reward_pool:Balance<SUI>,
         lottery_percent:u8,
         owners:u64,
         sign:VecSet<address>,
@@ -45,8 +45,8 @@ module suino::core{
             id:object::new(ctx),
             name:string::utf8(b"Sunio Core"),
             description:string::utf8(b"Core contains the information needed for Suino."),
-            balance:balance::zero<SUI>(),
-            fee_percent:5,
+            pool:balance::zero<SUI>(),
+            gaming_fee_percent:5,
             reward_pool:balance::zero<SUI>(),
             minimum_bet:1000,
             lottery_percent:20,
@@ -115,8 +115,8 @@ module suino::core{
     }
 
 
-    public(friend) entry fun set_fee_percent(_:&Ownership,core:&mut Core,percent:u8){
-        core.fee_percent = percent;
+    public(friend) entry fun set_gaming_fee_percent(_:&Ownership,core:&mut Core,percent:u8){
+        core.gaming_fee_percent = percent;
     }
 
     public(friend) entry fun set_lottery_percent(_:&Ownership,core:&mut Core,percent:u8){
@@ -152,12 +152,12 @@ module suino::core{
 
     //core.sui join
    public fun add_pool(core:&mut Core,balance:Balance<SUI>){
-       balance::join(&mut core.balance,balance);
+       balance::join(&mut core.pool,balance);
    }
 
     // core.sui remove 
    public fun remove_pool(core:&mut Core,amount:u64):Balance<SUI>{
-        balance::split<SUI>(&mut core.balance,amount)
+        balance::split<SUI>(&mut core.pool,amount)
    }
 
     //core.reward_pool add
@@ -173,12 +173,12 @@ module suino::core{
 
 
    //----------state--------------
-    public fun get_balance(core:&Core):u64{
-        balance::value(&core.balance)
+    public fun get_pool_balance(core:&Core):u64{
+        balance::value(&core.pool)
     }
 
-    public fun get_fee_percent(core:&Core):u8{
-        core.fee_percent
+    public fun get_gaming_fee_percent(core:&Core):u8{
+        core.gaming_fee_percent
     }
 
     public fun get_reward(core:&Core):u64{
@@ -210,8 +210,8 @@ module suino::core{
             id:object::new(ctx),
             name:string::utf8(b"Sunio Core"),
             description:string::utf8(b"Core contains the information needed for Suino."),
-            balance:balance::zero<SUI>(),
-            fee_percent:5,
+            pool:balance::zero<SUI>(),
+            gaming_fee_percent:5,
             reward_pool:balance::zero<SUI>(),
             minimum_bet:1000,
             lottery_percent:20,
@@ -227,17 +227,17 @@ module suino::core{
     }
 
     #[test_only]
-    public fun test_pool(
-        fee_percent:u8,
-        sui_balance:u64,
+    public fun test_core(
+        gaming_fee_percent:u8,
+        pool_balance:u64,
         reward_balance:u64,
         ctx:&mut TxContext){
         let core = Core{
             id:object::new(ctx),
             name:string::utf8(b"Sunio Core"),
             description:string::utf8(b"Core contains the information needed for Suino."),
-            balance:balance::create_for_testing<SUI>(sui_balance),
-            fee_percent,
+            pool:balance::create_for_testing<SUI>(pool_balance),
+            gaming_fee_percent,
             minimum_bet:1000,
             lottery_percent:20,
             reward_pool:balance::create_for_testing<SUI>(reward_balance),

@@ -63,7 +63,7 @@ module suino::flip{
         
         assert!(coin::value(coin) >= bet_amount,EInvalidAmount);
         assert!(bet_amount >= core::get_minimum_bet(core),EInvalidAmount);
-        check_maximum_bet_amount(bet_amount,core::get_balance(core));
+        check_maximum_bet_amount(bet_amount,core);
         assert!(vector::length(&value) > 0 && vector::length(&value) < 4,EInvalidValue);
       
     

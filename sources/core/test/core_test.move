@@ -1,6 +1,6 @@
 
 #[test_only]
-module suino::pool_test{
+module suino::core_test{
   
     use suino::core::{Self,Core,Ownership};
     use suino::nft::{Self,SuinoNFTState};
@@ -14,7 +14,7 @@ module suino::pool_test{
 
 
    #[test]
-    fun test_pool(){
+    fun test_core_pool(){
         let owner = @0xC0FFEE;
     
 
@@ -33,11 +33,11 @@ module suino::pool_test{
         {
             let core = test::take_shared<Core>(scenario);
           
-            let balance = balance::create_for_testing<SUI>(10000000);
+            let balance = balance::create_for_testing<SUI>(10_000_000);
 
             core::add_pool(&mut core,balance);
            
-            assert!(core::get_balance(&core) == 10000000 ,1);
+            assert!(core::get_pool_balance(&core) == 10_000_000 ,1);
 
             
             test::return_shared(core);
@@ -50,7 +50,7 @@ module suino::pool_test{
             let remove_value = core::remove_pool(&mut core,100_000);
             balance::destroy_for_testing(remove_value);
             //core.sui test
-            assert!(core::get_balance(&core) == 9_900_000,1);
+            assert!(core::get_pool_balance(&core) == 9_900_000,1);
             //reward_pool test
             test::return_shared(core);
         };
@@ -61,7 +61,7 @@ module suino::pool_test{
 
 
    #[test] 
-   fun test_pool_only_owner(){
+   fun test_core_only_owner(){
         let owner = @0xC0FFEE;
         let owner2 = @0xC0FFEE2;
         let owner3 = @0xC0FFEE3;
@@ -147,7 +147,7 @@ module suino::pool_test{
         let user3 = @0xA3;
         let scenario_val = test::begin(user);
         let scenario = &mut scenario_val;
-          //Reward test
+       
         next_tx(scenario,owner);
         {
             nft::init_for_testing(ctx(scenario));
@@ -219,9 +219,9 @@ module suino::pool_test{
         {
            let ownership = test::take_from_sender<Ownership>(scenario);
            let core = test::take_shared<Core>(scenario);
-           let fee_percent = core::get_fee_percent(&core);
-           core::set_fee_percent(&ownership,&mut core,30);
-           let change_percent = core::get_fee_percent(&core);
+           let fee_percent = core::get_gaming_fee_percent(&core);
+           core::set_gaming_fee_percent(&ownership,&mut core,30);
+           let change_percent = core::get_gaming_fee_percent(&core);
            assert!(fee_percent != change_percent,0);
            assert!(change_percent == 30,0);
            test::return_shared(core);
@@ -331,7 +331,7 @@ module suino::pool_test{
         let core = test::take_shared<Core>(scenario);
         let ownership = test::take_from_sender<Ownership>(scenario);
         core::withdraw(&ownership,&mut core,500_000,ctx(scenario));
-        assert!(core::get_balance(&core) ==0,0 );
+        assert!(core::get_pool_balance(&core) ==0,0 );
         test::return_to_sender(scenario,ownership);
         test::return_shared(core);
     }
@@ -350,7 +350,7 @@ module suino::pool_test{
         let ownership = test::take_from_sender<Ownership>(scenario);
         let test_coin = coin::mint_for_testing<SUI>(500_000,ctx(scenario));
         core::deposit(&ownership,&mut core,test_coin);
-        assert!(core::get_balance(&core) == 500_000,0);
+        assert!(core::get_pool_balance(&core) == 500_000,0);
         test::return_to_sender(scenario,ownership);
         test::return_shared(core);
     }

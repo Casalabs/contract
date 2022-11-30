@@ -11,7 +11,7 @@ module suino::test_flip{
     use suino::random::{Self,Random};
     use suino::player::{Self,Player};
     use suino::flip::{Self,Flip};
-
+    use suino::test_utils::{balance_check};
     #[test]
     fun test_flip(){
         let user = user();
@@ -64,7 +64,7 @@ module suino::test_flip{
             //| pool_reserve_balance  =            9867000   | 
             //-----------------------------------------------
             
-            assert!(core::get_balance(&core) == 9867000,0);
+            assert!(core::get_pool_balance(&core) == 9867000,0);
             assert!(core::get_reward(&core) == 1000,0);
 
 
@@ -125,7 +125,7 @@ module suino::test_flip{
             //| pool_reserve_balance  =         10011400    |
             //----------------------------------------------
             
-            assert!(core::get_balance(&core) == 10011400,0);
+            assert!(core::get_pool_balance(&core) == 10011400,0);
             assert!(core::get_reward(&core) == 8600,0);
 
 
@@ -263,7 +263,7 @@ module suino::test_flip{
     //===============test utils====================
     fun test_init(scenario:&mut Scenario,user:address,amount:u64){
             lottery::test_lottery(0,ctx(scenario));
-            core::test_pool(5,10000000,0,ctx(scenario));
+            core::test_core(5,10000000,0,ctx(scenario));
             random::test_random(b"casino",ctx(scenario));
             flip::init_for_testing(ctx(scenario));
             player::test_create(ctx(scenario),10);
@@ -303,12 +303,7 @@ module suino::test_flip{
             return_to_sender(lottery,core,random,flip);
     }
    
-    fun balance_check(scenario:&mut Scenario,balance:u64){
-        let coin = test::take_from_sender<Coin<SUI>>(scenario);
-        let amount = coin::value(&coin);
-        assert!(amount == balance, 0);
-        test::return_to_sender(scenario,coin);
-    }
+
 
     fun require_shared(test:&mut Scenario):(Lottery,Core,Random,Flip){
         let lottery = test::take_shared<Lottery>(test);

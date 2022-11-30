@@ -2,14 +2,13 @@
 module suino::test_lottery{
     
     use sui::test_scenario::{Self as test,next_tx,ctx,Scenario};
-    use sui::coin::{Self,Coin};
-    use sui::sui::{SUI};
+
     use suino::lottery::{Self,Lottery};
     use suino::player::{Self,Player};
     use suino::core::{Self,Core,Ownership};
     use suino::random::{Self,Random};
     // use std::debug;
-    
+    use suino::test_utils::{balance_check};
     #[test]
     fun test_lottery(){
         let owner = @0xC0FFEE;
@@ -58,7 +57,7 @@ module suino::test_lottery{
             let lottery = test::take_shared<Lottery>(scenario);
             let pool = test::take_shared<Core>(scenario);
             assert!(lottery::get_prize(&lottery) == 10000,0);
-            assert!(core::get_balance(&pool) == 100000,0);
+            assert!(core::get_pool_balance(&pool) == 100000,0);
             test::return_shared(pool);
             test::return_shared(lottery);
         };
@@ -103,7 +102,7 @@ module suino::test_lottery{
             let pool = test::take_shared<Core>(scenario);
 
             assert!(lottery::get_prize(&lottery) == 0,0);
-            assert!(core::get_balance(&pool) == 90000,0);
+            assert!(core::get_pool_balance(&pool) == 90000,0);
 
             test::return_shared(pool); 
             test::return_shared(lottery);
@@ -112,18 +111,13 @@ module suino::test_lottery{
         //coin check
         next_tx(scenario,user);
         {
-            let coin = test::take_from_sender<Coin<SUI>>(scenario);
-            
-            assert!(coin::value(&coin) == 5000,0);
-            test::return_to_sender(scenario,coin);  
+         
+            balance_check(scenario,5000);
         };
 
         next_tx(scenario,user2);
         {
-            let coin = test::take_from_sender<Coin<SUI>>(scenario);
-            
-            assert!(coin::value(&coin) == 5000,0);
-            test::return_to_sender(scenario,coin);  
+            balance_check(scenario,5000);
         };
 
         test::end(scenario_val);
@@ -212,7 +206,7 @@ module suino::test_lottery{
 
     fun init_(scenario:&mut Scenario){
         lottery::test_lottery(10000,ctx(scenario));
-        core::test_pool(5,100000,1000,ctx(scenario));
+        core::test_core(5,100000,1000,ctx(scenario));
         random::test_random(b"casino",ctx(scenario));
     }
 }

@@ -19,14 +19,14 @@ module suino::game_utils{
         lottery::prize_up(lottery,calculate_percent(death_amount,lottery_percent));
     }
 
-    public fun check_maximum_bet_amount(bet:u64,pool:u64){
-        let compare_percent = (bet * 100) / pool ;
+    public fun check_maximum_bet_amount(bet:u64,core:&Core){
+        let compare_percent = (bet * 100) / core::get_pool_balance(core) ;
         // compare_percent
         assert!(compare_percent <= 10,EMaximumBet);
     }
 
     public fun fee_deduct(pool:&mut Core,balance:&mut Balance<SUI>,amount:u64):u64{
-         let fee_percent = core::get_fee_percent(pool);
+         let fee_percent = core::get_gaming_fee_percent(pool);
          let fee_amt = calculate_percent(amount,fee_percent); 
          let fee = balance::split<SUI>(balance,fee_amt);  
          core::add_reward(pool,fee);
@@ -64,22 +64,62 @@ module suino::game_utils{
 
 #[test_only]
 module suino::game_utils_test{
+    use sui::test_scenario::{Self as test,next_tx,ctx};
+    
     use suino::game_utils::{
         check_maximum_bet_amount
     };
-    // use std::debug;
+    use suino::core::{Self,Core};
+  
     #[test]
     #[expected_failure]
     fun maximum_bet_amount_test_fail(){
-        check_maximum_bet_amount(2,10);
-        check_maximum_bet_amount(11,100);
+        let user = @0xA1;
+        let scenario_val = test::begin(user);
+        let scenario = &mut scenario_val;
+        next_tx(scenario,user);
+        {
+            core::test_core(5,100,0,ctx(scenario));
+        };
+        next_tx(scenario,user);
+    
+        {
+            let core = test::take_shared<Core>(scenario);
+            check_maximum_bet_amount(11,&core);
+            test::return_shared(core);
+        };
+        next_tx(scenario,user);
+        {
+            let core = test::take_shared<Core>(scenario);
+            check_maximum_bet_amount(1,&core);
+            test::return_shared(core);
+        };
+        test::end(scenario_val);
     }
 
     #[test]
     fun maximum_bet_amount_success(){
-        check_maximum_bet_amount(1,10);
-        check_maximum_bet_amount(9,100);
-        check_maximum_bet_amount(1000000,10000000000);
+        let user = @0xA1;
+        let scenario_val = test::begin(user);
+        let scenario = &mut scenario_val;
+        next_tx(scenario,user);
+        {
+            core::test_core(5,100,0,ctx(scenario));
+        };
+        next_tx(scenario,user);
+    
+        {
+            let core = test::take_shared<Core>(scenario);
+            check_maximum_bet_amount(9,&core);
+            test::return_shared(core);
+        };
+        next_tx(scenario,user);
+        {
+            let core = test::take_shared<Core>(scenario);
+            check_maximum_bet_amount(1,&core);
+            test::return_shared(core);
+        };
+        test::end(scenario_val);
         
     }
 }

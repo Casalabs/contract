@@ -6,7 +6,7 @@ module suino::nft_test{
     
     use sui::sui::SUI;
     use sui::object::{Self,ID};
-    use suino::test_utils::{coin_mint};
+    use suino::test_utils::{coin_mint,balance_check};
     
      struct Listing<phantom C> has store {
         item: SuinoNFT,
@@ -130,6 +130,12 @@ module suino::nft_test{
         test::end(scenario_val);
     }
 
+
+
+
+
+
+    //=========utils==================
     fun buy_and_take(scenario:&mut Scenario,id:ID,amount:u64){
         let market = test::take_shared<Marketplace>(scenario);
         let state = test::take_shared<SuinoNFTState>(scenario);
@@ -182,11 +188,7 @@ module suino::nft_test{
 
  
 
-    fun balance_check(scenario:&mut Scenario,amount:u64){
-        let coin = test::take_from_sender<Coin<SUI>>(scenario);
-        assert!(coin::value(&coin) == amount,0);
-        test::return_to_sender(scenario,coin);
-    }
+  
 
 
 }
