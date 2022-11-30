@@ -51,15 +51,15 @@ module suino::race_test{
     
         next_tx(scenario,user2);
         {
-            bet(scenario,2);
+            bet(scenario,1);
         };
         next_tx(scenario,user3);
         {
-            bet(scenario,3);
+            bet(scenario,1);
         };
         next_tx(scenario,user4);
         {
-            bet(scenario,4);
+            bet(scenario,1);
         };
         next_tx(scenario,user5);
         {
@@ -94,28 +94,24 @@ module suino::race_test{
 
         next_tx(scenario,user);
         {   
-           balance_check(scenario,10_000);
+           balance_check(scenario,2_500);
         //   balance_print(scenario);
         };
          next_tx(scenario,user2);
         {
-            balance_check(scenario,0);
+            balance_check(scenario,2_500);
             // balance_print(scenario);
         };
 
-        next_tx(scenario,user2);
-        {
-            balance_check(scenario,0);
-            // balance_print(scenario);
-        };
+      
         next_tx(scenario,user3);
         {
-            balance_check(scenario,0);
+            balance_check(scenario,2_500);
             // balance_print(scenario);
         };
         next_tx(scenario,user4);
         {
-            balance_check(scenario,0);
+            balance_check(scenario,2_500);
             // balance_print(scenario);
         };
         next_tx(scenario,user5);
@@ -153,145 +149,7 @@ module suino::race_test{
         test::end(scenario_val);
     }
 
-    #[test]
-    fun many_jackpot(){
-        let owner = @0xC0FFEE;
-        let user = @0xA1;
-        let user2 = @0xA2;
-        let user3 = @0xA3;
-        let user4 = @0xA4;
-        let user5 = @0xA5;
-        let user6 = @0xA6;
-        let user7 = @0xA7;
-        let user8 = @0xA8;
-        let user9 = @0xA9;
-        let user10 = @0xA10;
-        let scenario_val = test::begin(owner);
-        let scenario = &mut scenario_val;
-        next_tx(scenario,owner);
-        {
-            init_for_testing(scenario);
-            coin_and_player_mint(scenario,user,1000,0);
-            coin_and_player_mint(scenario,user2,1000,0);
-            coin_and_player_mint(scenario,user3,1000,0);
-            coin_and_player_mint(scenario,user4,1000,0);
-            coin_and_player_mint(scenario,user5,1000,0);
-            coin_and_player_mint(scenario,user6,1000,0);
-            coin_and_player_mint(scenario,user7,1000,0);
-            coin_and_player_mint(scenario,user8,1000,0);
-            coin_and_player_mint(scenario,user9,1000,0);
-            coin_and_player_mint(scenario,user10,1000,0);
-        };
-       next_tx(scenario,user);
-        {
-            bet(scenario,1);
-        };
-    
-        next_tx(scenario,user2);
-        {
-            bet(scenario,1);
-        };
-        next_tx(scenario,user3);
-        {
-            bet(scenario,1);
-        };
-        next_tx(scenario,user4);
-        {
-            bet(scenario,1);
-        };
-        next_tx(scenario,user5);
-        {
-            bet(scenario,1);
-        };
-        next_tx(scenario,user6);
-        {
-            bet(scenario,6);
-        };
-        next_tx(scenario,user7);
-        {
-            bet(scenario,7);
-        };
-        next_tx(scenario,user8);
-        {
-            bet(scenario,8);
-        };
-        next_tx(scenario,user9);
-        {
-            bet(scenario,9);
-        };
-        next_tx(scenario,user10);
-        {
-            bet(scenario,0);
-        };
-        //=========jackpot=============
-        //jackpot member = 5
-        next_tx(scenario,owner);
-        {
-            jackpot(scenario);
-        };
-
-        next_tx(scenario,user);
-        {   
-           balance_check(scenario,2_000);
-        
-        };
-         next_tx(scenario,user2);
-        {
-            balance_check(scenario,2_000);
-            
-        };
-
-        next_tx(scenario,user3);
-        {
-            balance_check(scenario,2_000);
-            
-        };
-        next_tx(scenario,user4);
-        {
-            balance_check(scenario,2_000);
-            
-        };
-        next_tx(scenario,user5);
-        {
-            balance_check(scenario,2_000);
-            
-        };
-        next_tx(scenario,user6);
-        {
-            balance_check(scenario,0);
-            
-        };
-        next_tx(scenario,user7);
-        {
-            balance_check(scenario,0);
-            
-        };
-        
-        next_tx(scenario,user8);
-        {
-        
-            balance_check(scenario,0);
-            
-        };
-        next_tx(scenario,user9);
-        {
-            balance_check(scenario,0);
-            // balance_print(scenario);
-        };
-        next_tx(scenario,user9);
-        {
-            balance_check(scenario,0);
-          
-        };
-         next_tx(scenario,user10);
-        {
-            balance_check(scenario,0);
-          
-        };
-      
-        test::end(scenario_val);
-
-    }
+   
 
     #[test]
     fun only_once_bet_win(){
