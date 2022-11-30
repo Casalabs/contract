@@ -14,8 +14,8 @@ module suino::game_utils{
     const EInvalidValue:u64 = 1;
 
 
-    public fun lose_game_lottery_update(pool:&Core,lottery:&mut Lottery,death_amount:u64){
-        let lottery_percent = core::get_lottery_percent(pool);
+    public fun lose_game_lottery_update(core:&Core,lottery:&mut Lottery,death_amount:u64){
+        let lottery_percent = core::get_lottery_percent(core);
         lottery::prize_up(lottery,calculate_percent(death_amount,lottery_percent));
     }
 
@@ -25,11 +25,11 @@ module suino::game_utils{
         assert!(compare_percent <= 10,EMaximumBet);
     }
 
-    public fun fee_deduct(pool:&mut Core,balance:&mut Balance<SUI>,amount:u64):u64{
-         let fee_percent = core::get_gaming_fee_percent(pool);
+    public fun fee_deduct(core:&mut Core,balance:&mut Balance<SUI>,amount:u64):u64{
+         let fee_percent = core::get_gaming_fee_percent(core);
          let fee_amt = calculate_percent(amount,fee_percent); 
          let fee = balance::split<SUI>(balance,fee_amt);  
-         core::add_reward(pool,fee);
+         core::add_reward(core,fee);
          fee_amt
     }
 

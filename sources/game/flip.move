@@ -67,7 +67,7 @@ module suino::flip{
         assert!(vector::length(&value) > 0 && vector::length(&value) < 4,EInvalidValue);
       
     
-        // let bet = coin::into_balance<SUI>(coin);
+        
          let coin_balance = coin::balance_mut(coin);
 
          let bet = balance::split(coin_balance, bet_amount);
