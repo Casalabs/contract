@@ -49,7 +49,7 @@ module suino::flip{
     }
 
   
-    public entry fun game(
+    public entry fun bet(
         _:&Flip,
         player:&mut Player,
         core:&mut Core,
@@ -65,7 +65,7 @@ module suino::flip{
         assert!(bet_amount >= core::get_minimum_bet(core),EInvalidAmount);
         check_maximum_bet_amount(bet_amount,core);
         assert!(vector::length(&value) > 0 && vector::length(&value) < 4,EInvalidValue);
-      
+
     
         
          let coin_balance = coin::balance_mut(coin);
@@ -78,7 +78,7 @@ module suino::flip{
 
           //reward -> nft holder , core + sui
         {
-            let fee_amt = fee_deduct(core,&mut bet,bet_amt);
+            let fee_amt = fee_deduct(core,&mut bet);
             bet_amt = bet_amt - fee_amt; 
             core::add_pool(core,bet); 
         };
@@ -87,8 +87,6 @@ module suino::flip{
         player::count_up(player);
       
 
-        
-  
         let jackpot_amount = calculate_jackpot(random,value,bet_amt,ctx);
         //lottery prize up!
         if (jackpot_amount == 0){

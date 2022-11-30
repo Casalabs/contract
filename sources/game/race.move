@@ -34,47 +34,50 @@ module suino::race{
             participants:vector::empty<address>(),
             bet_state:map::empty<u64,vector<address>>(),
             balance:balance::zero<SUI>(),
-            minimum_balance:100000,
+            minimum_balance:10000,
         };
         transfer::share_object(race);
     }
     
-    entry fun bet(race:&mut Race,core:&Core,coin:&mut Coin<SUI>,bet_value:u64,ctx:&mut TxContext){
-        assert!(bet_value > 11,EInvalidBetValue);
+    public entry fun bet(race:&mut Race,core:&mut Core,random:&mut Random,coin:&mut Coin<SUI>,bet_value:u64,ctx:&mut TxContext){
+        assert!(bet_value < 11,EInvalidBetValue);
         assert!(coin::value(coin) >= core::get_minimum_bet(core),ENotEnoughBalance);
         let coin_balance = coin::balance_mut(coin);
         let bet = balance::split(coin_balance,core::get_minimum_bet(core));
+        fee_deduct(core,&mut bet);
         add_balance(race,bet);
         set_participants(race,ctx);
         set_bet_state(race,bet_value,ctx);
+        random::game_after_set_random(random,ctx);
     }
 
-    entry fun jackpot(_:&Ownership,race:&mut Race,core:&mut Core,random:&mut Random,ctx:&mut TxContext){
+    public entry fun jackpot(_:&Ownership,race:&mut Race,core:&mut Core,random:&mut Random,ctx:&mut TxContext){
+
+        random::game_after_set_random(random,ctx);
         let jackpot_value = {
-            random::get_random_int(random,ctx) % 10
+        random::get_random_int(random,ctx) % 10
         };
 
 
-
-        let jackpot_members = *map::get(&race.bet_state,&jackpot_value);
-
-        //no winner
-        if (vector::length(&jackpot_members) == 0 ){
-            no_winer(race,core);
-            return
-        };
-
-        /*
-        If the balance of the race is less than the minimum_balance, 
-        the prize money is collected from the pool
-        */
-        if (get_balance(race) <= race.minimum_balance){
-            let balance = core::remove_pool(core,race.minimum_balance);
+        if (get_balance(race) < race.minimum_balance){
+            let supply_balance = race.minimum_balance - get_balance(race);
+            let balance = core::remove_pool(core,supply_balance);
             add_balance(race,balance);
         };
 
-        let balance = fee_deduct_balance(race,core);
+      
         
+        let balance = remove_balance(race);
+
+        //exsists_jackpot = false == no_jackpot
+        let exsists_jackpot:bool = map::contains(&race.bet_state,&jackpot_value);
+        if (!exsists_jackpot){
+            core::add_pool(core,balance);
+            return
+        };
+      
+
+        let jackpot_members = *map::get(&race.bet_state,&jackpot_value);
         let jackpot_amt = {
             balance::value(&balance) / vector::length(&jackpot_members)
         };
@@ -102,8 +105,9 @@ module suino::race{
         balance::join(&mut race.balance,balance);
     }
 
-    public fun remove_balance(race:&mut Race,amount:u64):Balance<SUI>{
-        balance::split<SUI>(&mut race.balance,amount)
+    public fun remove_balance(race:&mut Race):Balance<SUI>{
+        let race_amt = get_balance(race);
+        balance::split<SUI>(&mut race.balance,race_amt)
     }
 
     //==================get=============
@@ -116,6 +120,10 @@ module suino::race{
     //===========game====================
     public fun set_bet_state(race:&mut Race,bet_value:u64,ctx:&mut TxContext){
         //if contains?
+        if (!map::contains(&race.bet_state,&bet_value)){
+            map::insert(&mut race.bet_state,bet_value,vector[sender(ctx)]);
+            return
+        };
         let race_value = map::get_mut(&mut race.bet_state,&bet_value);
         vector::push_back(race_value,sender(ctx));
     }
@@ -124,13 +132,7 @@ module suino::race{
         vector::push_back(&mut race.participants,sender(ctx));
     }
 
-    //===========bet====================
-    public fun no_winer(race:&mut Race,core:&mut Core){
-        let amt = balance::value(&race.balance);
-        let jackpot_balance = remove_balance(race,amt);
-        fee_deduct(core,&mut jackpot_balance,amt);
-        core::add_pool(core,jackpot_balance);
-    }
+    
 
     public fun set_init(race:&mut Race){
         race.bet_state = map::empty<u64,vector<address>>();
@@ -138,12 +140,12 @@ module suino::race{
     }
 
 
-    public fun fee_deduct_balance(race:&mut Race,core:&mut Core):Balance<SUI>{
-         let balance_amt = get_balance(race);
-        let balance = remove_balance(race,balance_amt);
-        fee_deduct(core,&mut balance,balance_amt);
-        balance
-    }
+    // public fun fee_deduct_balance(race:&mut Race,core:&mut Core):Balance<SUI>{
+    //     let balance_amt = get_balance(race);
+    //     let balance = remove_balance(race,balance_amt);
+    //     fee_deduct(core,&mut balance);
+    //     balance
+    // }
 
     #[test_only]
     public fun init_for_testing(ctx:&mut TxContext){
@@ -154,7 +156,7 @@ module suino::race{
             participants:vector::empty<address>(),
             bet_state:map::empty<u64,vector<address>>(),
             balance:balance::zero<SUI>(),
-            minimum_balance:100000,
+            minimum_balance:10000,
         };
         transfer::share_object(race);
     }

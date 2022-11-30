@@ -71,8 +71,8 @@ module suino::lottery{
             random::game_after_set_random(random,ctx);
         };       
         lottery.latest_jackpot_number = jackpot_number;
-        let exsitsJackpot = map::contains(&lottery.tickets,&jackpot_number);
-        if (!exsitsJackpot){
+        let exsists_jackpot = map::contains(&lottery.tickets,&jackpot_number);
+        if (!exsists_jackpot){
             lottery.tickets =map::empty<vector<u8>,vector<address>>();
             return
         };

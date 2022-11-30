@@ -272,10 +272,10 @@ module suino::test_flip{
 
     fun test_game(scenario:&mut Scenario,amount:u64,value:vector<u64>){
         let coin = test::take_from_sender<Coin<SUI>>(scenario);
-        game(scenario,&mut coin,amount,value);
+        bet(scenario,&mut coin,amount,value);
         test::return_to_sender(scenario,coin);
     }
-    fun game(scenario:&mut Scenario,test_coin:&mut Coin<SUI>,amount:u64,value:vector<u64>){
+    fun bet(scenario:&mut Scenario,test_coin:&mut Coin<SUI>,amount:u64,value:vector<u64>){
           let (
                 lottery,
                 core,
@@ -287,7 +287,7 @@ module suino::test_flip{
 
             let player = test::take_from_sender<Player>(scenario);
            
-            flip::game(
+            flip::bet(
                 &flip,
                 &mut player,
                 &mut core,

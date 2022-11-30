@@ -25,9 +25,9 @@ module suino::game_utils{
         assert!(compare_percent <= 10,EMaximumBet);
     }
 
-    public fun fee_deduct(core:&mut Core,balance:&mut Balance<SUI>,amount:u64):u64{
+    public fun fee_deduct(core:&mut Core,balance:&mut Balance<SUI>):u64{
          let fee_percent = core::get_gaming_fee_percent(core);
-         let fee_amt = calculate_percent(amount,fee_percent); 
+         let fee_amt = calculate_percent(balance::value(balance),fee_percent); 
          let fee = balance::split<SUI>(balance,fee_amt);  
          core::add_reward(core,fee);
          fee_amt
