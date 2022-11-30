@@ -55,7 +55,7 @@ module suino::race{
 
         random::game_after_set_random(random,ctx);
         let jackpot_value = {
-        random::get_random_int(random,ctx) % 10
+            random::get_random_int(random,ctx) % 10
         };
 
 
@@ -67,7 +67,7 @@ module suino::race{
 
       
         
-        let balance = remove_balance(race);
+        let balance = remove_all_balance(race);
 
         //exsists_jackpot = false == no_jackpot
         let exsists_jackpot:bool = map::contains(&race.bet_state,&jackpot_value);
@@ -97,15 +97,19 @@ module suino::race{
         set_init(race);
     }
 
-    
+    entry fun set_minimum_balance(_:&Ownership,race:&mut Race,amount:u64){
+        race.minimum_balance = amount;
+    }    
    
+
+
     // public get_balance(race:&Race):
     //===========mut==============
     public fun add_balance(race:&mut Race,balance:Balance<SUI>){
         balance::join(&mut race.balance,balance);
     }
 
-    public fun remove_balance(race:&mut Race):Balance<SUI>{
+    public fun remove_all_balance(race:&mut Race):Balance<SUI>{
         let race_amt = get_balance(race);
         balance::split<SUI>(&mut race.balance,race_amt)
     }
