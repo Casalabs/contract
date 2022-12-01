@@ -138,6 +138,7 @@ module suino::flip{
             jackpot_amount = jackpot_amount * 2;
             set_random(random,ctx);
         };
+        set_random(random,ctx);
         (jackpot_amount,jackpot_value)
     }
 
