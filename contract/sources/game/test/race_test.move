@@ -42,7 +42,6 @@ module suino::race_test{
             coin_and_player_mint(scenario,user8,1000,0);
             coin_and_player_mint(scenario,user9,1000,0);
             coin_and_player_mint(scenario,user10,1000,0);
-            
         };
         next_tx(scenario,user);
         {
