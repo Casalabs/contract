@@ -5,13 +5,13 @@ module suino::test_flip{
     use sui::test_scenario::{Self as test,next_tx,ctx,Scenario};
     use sui::coin::{Self,Coin};
     use sui::sui::SUI;
-    use sui::transfer;
     use suino::lottery::{Self,Lottery};
     use suino::core::{Self,Core};
     use suino::random::{Self,Random};
     use suino::player::{Self,Player};
     use suino::flip::{Self,Flip};
-    use suino::test_utils::{balance_check};
+    use suino::test_utils::{balance_check,coin_mint};
+    use std::debug;
     #[test]
     fun test_flip(){
         let user = user();
@@ -20,20 +20,24 @@ module suino::test_flip{
         //=============init===============================
         next_tx(scenario,user);
         {
-            test_init(scenario,user,20000);
+            test_init(scenario,user,1000);
+            //pool = 1000000
+            //user_balance = 1000
+            //minimum_bet = 1000
         };
 
         //==============Win==============================
         next_tx(scenario,user);
         {   
             //!! vector[1,0,0] = only test win from test case 
-            test_game(scenario,20000,vector[1,0,0]);
+            test_game(scenario,1000,vector[1,0,0]);
         };
         
        //jackpot coin check
        next_tx(scenario,user);
        {    
-            balance_check(scenario,152000);
+            // balance_print(scenario);
+            balance_check(scenario,7600);
        };
 
         //state check
@@ -53,19 +57,19 @@ module suino::test_flip{
             //(10000 - 500) * (2 * jackpot_count) = 38000
             //-----------------------------------------------
             //| core check                                   |
-            //| pool_original_balance =           10000000   |
+            //| pool_original_balance =            1000000   |
             //|                                              |
             //|                                              | 
-            //| betting_balance       =              20000   |
-            //| fee_reward            =               1000   |
-            //| rolling_balance       =              19000   |
+            //| betting_balance       =               1000   |
+            //| fee_reward            =                 50   |
+            //| rolling_balance       =                950   |
             //   jackpot_count        =                  3   |
-            //| jackpot_balance       =             152000   | 
-            //| pool_reserve_balance  =            9867000   | 
+            //| jackpot_balance       =              7_600   | 
+            //| pool_reserve_balance  =            993_350   | 
             //-----------------------------------------------
-            
-            assert!(core::get_pool_balance(&core) == 9867000,0);
-            assert!(core::get_reward(&core) == 1000,0);
+           
+            assert!(core::get_pool_balance(&core) == 993_350,0);
+            assert!(core::get_reward(&core) == 50,0);
 
 
              //----------------------------------------
@@ -95,7 +99,7 @@ module suino::test_flip{
         next_tx(scenario,user);
         {   
             //fail
-            test_game(scenario,152000,vector[1,0,0]);
+            test_game(scenario,7600,vector[0,0,0]);
         };
 
         //fail balance check
@@ -115,18 +119,18 @@ module suino::test_flip{
             = require_shared(scenario);
             //----------------------------------------------
             //| core check                                  |
-            //| pool_original_balance =          9867000    |
+            //| pool_original_balance =          993_350    |
             //|               +                             |
-            //| betting_balance       =           152000    |
+            //| betting_balance       =            7_600    |
             //               -                              |
             //| jackpot_balance       =                0    |
-            //| fee_reward            =             7600    |
-            //|    add_pool           =           144400    |
-            //| pool_reserve_balance  =         10011400    |
+            //| fee_reward            =              380    |
+            //|    add_pool           =            7_220    |
+            //| pool_reserve_balance  =        1_000_570    |
             //----------------------------------------------
-            
-            assert!(core::get_pool_balance(&core) == 10011400,0);
-            assert!(core::get_reward(&core) == 8600,0);
+            debug::print(&core::get_pool_balance(&core));
+            assert!(core::get_pool_balance(&core) == 1_000_570,0);
+            assert!(core::get_reward(&core) == 430,0);
 
 
              //----------------------------------------
@@ -142,15 +146,15 @@ module suino::test_flip{
             //----------------------------------------
             //| lottery check                         |
             //| original_lottery_prize   =          0 |
-            //| betting_balance          =     152000 |
+            //| betting_balance          =       7600 |
             //|                  -                    |
-            //| fee_balance              =       7600 |
-            //| pool_add_balance         =     152000 |
+            //| fee_balance              =        380 |
+            //| pool_add_balance         =      7_220 |
             //| lottery_percent          =         20 |
-            //| now_prize              =        28880 |
+            //| now_prize              =        1_444 |
             //-----------------------------------------
             
-            assert!(lottery::get_prize(&lottery) == 28880,0);
+            assert!(lottery::get_prize(&lottery) == 1_444,0);
             
             return_to_sender(lottery,core,random,flip);
         };
@@ -254,7 +258,7 @@ module suino::test_flip{
         };
         next_tx(scenario,user);
         {
-            test_game(scenario,20000,vector[4,2,4]);
+            test_game(scenario,1000,vector[4,2,4]);
         };
         test::end(scenario_val);
     }
@@ -263,11 +267,11 @@ module suino::test_flip{
     //===============test utils====================
     fun test_init(scenario:&mut Scenario,user:address,amount:u64){
             lottery::test_lottery(0,ctx(scenario));
-            core::test_core(5,10000000,0,ctx(scenario));
+            core::test_core(5,1000000,0,ctx(scenario));
             random::test_random(b"casino",ctx(scenario));
             flip::init_for_testing(ctx(scenario));
             player::test_create(ctx(scenario),10);
-            mint(scenario,user,amount);
+            coin_mint(scenario,user,amount);
     }
 
     fun test_game(scenario:&mut Scenario,amount:u64,value:vector<u64>){
@@ -327,10 +331,7 @@ module suino::test_flip{
         @0xA1
     }
     
-    fun mint(scenario:&mut Scenario,user:address,amount:u64){
-        let coin = coin::mint_for_testing<SUI>(amount,ctx(scenario));
-        transfer::transfer(coin,user);
-    }
+ 
 
 
 

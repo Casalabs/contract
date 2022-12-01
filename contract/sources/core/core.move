@@ -9,7 +9,7 @@ module suino::core{
     use sui::tx_context::{TxContext,sender};
     use sui::vec_map as map;
     use suino::nft::{Self,SuinoNFTState};
-
+    
 
     #[test_only]
     friend suino::core_test;
@@ -33,6 +33,7 @@ module suino::core{
         owners:u64,
         sign:VecSet<address>,
         lock:bool,
+     
     }
 
     struct Ownership has key{
@@ -41,6 +42,8 @@ module suino::core{
 
     // -----init-------
     fun init(ctx:&mut TxContext){
+        
+        
         let core = Core{
             id:object::new(ctx),
             name:string::utf8(b"Sunio Core"),
@@ -53,7 +56,7 @@ module suino::core{
             owners:1,
             sign:set::empty(),
             lock:true,
-            
+          
         };
         let ownership = Ownership{
             id:object::new(ctx)

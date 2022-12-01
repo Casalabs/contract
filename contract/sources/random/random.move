@@ -11,7 +11,7 @@ module suino::random{
         id:UID,
         random_hash:vector<u8>,
     }
-
+    
     fun init(ctx:&mut TxContext){
         let vec = b"casino";
         let random_hash = ecdsa::keccak256(&vec);

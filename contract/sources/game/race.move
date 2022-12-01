@@ -14,6 +14,7 @@ module suino::race{
     use suino::player::{Self,Player};
     use suino::game_utils::{
         fee_deduct,
+        set_random,
     };
     struct Race has key{
         id:UID,
@@ -71,7 +72,7 @@ module suino::race{
         add_balance(race,bet);
         set_participants(race,ctx);
         set_bet_state(race,bet_value,ctx);
-        random::game_after_set_random(random,ctx);
+        set_random(random,ctx);
     }
 
 
@@ -79,7 +80,7 @@ module suino::race{
 
     public entry fun jackpot(_:&Ownership,race:&mut Race,core:&mut Core,random:&mut Random,ctx:&mut TxContext){
 
-        random::game_after_set_random(random,ctx);
+        set_random(random,ctx);
         let jackpot_value = {
             random::get_random_int(random,ctx) % 10
         };

@@ -10,16 +10,16 @@ module suino::flip{
     use sui::sui::SUI;
     use sui::event;
 
-    use suino::random::{Random};
+    use suino::random::{Self,Random};
     use suino::core::{Self,Core};
     use suino::player::{Self,Player};
     use suino::lottery::{Lottery};
 
     use suino::game_utils::{
         lose_game_lottery_update,
-        check_maximum_bet_amount,
         fee_deduct,
-        calculate_jackpot
+        set_random,
+        check_maximum_bet_amount,
     };
 
     const EInvalidAmount:u64 = 0;
@@ -47,7 +47,7 @@ module suino::flip{
         };
         transfer::share_object(flip);
     }
-
+  
   
     public entry fun bet(
         _:&Flip,
@@ -63,8 +63,8 @@ module suino::flip{
         
         assert!(coin::value(coin) >= bet_amount,EInvalidAmount);
         assert!(bet_amount >= core::get_minimum_bet(core),EInvalidAmount);
-        check_maximum_bet_amount(bet_amount,core);
         assert!(vector::length(&value) > 0 && vector::length(&value) < 4,EInvalidValue);
+        check_maximum_bet_amount(bet_amount,core::get_gaming_fee_percent(core),vector::length(&value),core);
 
     
         
@@ -104,8 +104,26 @@ module suino::flip{
         })
     }
        
+    public fun calculate_jackpot(random:&mut Random,value:vector<u64>,bet_amount:u64,ctx:&mut TxContext):u64{
+        
+        //reverse because vector only pop_back [0,0,1] -> [1,0,0]
+        vector::reverse(&mut value);
+
+        let jackpot_amount = bet_amount;
+         while(!vector::is_empty<u64>(&value)) {
+            let compare_number = vector::pop_back(&mut value);
+            assert!(compare_number == 0 || compare_number == 1,EInvalidValue);
+            let jackpot_number = random::get_random_int(random,ctx) % 2;
+            if (jackpot_number != compare_number){
+                    jackpot_amount = 0;
+                    break
+            };
+            jackpot_amount = jackpot_amount * 2;
+            set_random(random,ctx);
+        };
+        jackpot_amount
+    }
     
-  
 
     #[test_only]
     public fun init_for_testing(ctx:&mut TxContext){

@@ -12,7 +12,7 @@ module suino::nft{
     use sui::dynamic_field;
     use sui::coin::{Self,Coin};
     use suino::utils::{
-        calculate_percent
+        calculate_percent_amount
     };
     
 
@@ -211,7 +211,7 @@ module suino::nft{
         assert!(ask == coin::value(&paid), EAmountIncorrect);
 
 
-        let fee_amt = calculate_percent(coin::value(&paid),get_fee_percent(marketplace));
+        let fee_amt = calculate_percent_amount(coin::value(&paid),get_fee_percent(marketplace));
         let fee_coin = coin::split(&mut paid,fee_amt,ctx);
         transfer::transfer(fee_coin,get_owner(state));
 

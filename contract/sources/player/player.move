@@ -8,7 +8,7 @@ module suino::player{
     use sui::coin::{Self,Coin};
     
     use suino::utils::{
-        calculate_percent
+        calculate_percent_amount
     };
     const EAmountIncorrect: u64 = 0;
     const ENotOwner: u64 = 1;
@@ -143,7 +143,7 @@ module suino::player{
         assert!(ask == coin::value(&paid), EAmountIncorrect);
         
         //paid : 5% -> owner address
-        let fee_amt = calculate_percent(coin::value(&paid),(get_market_fee_percent(market) as u8));
+        let fee_amt = calculate_percent_amount(coin::value(&paid),(get_market_fee_percent(market) as u8));
         let fee_coin = coin::split(&mut paid,fee_amt,ctx);
         transfer::transfer(fee_coin,get_market_owner(market));
 

@@ -299,9 +299,7 @@ module suino::race_test{
     }
 
     fun core_pool_check(scenario:&mut Scenario,amount:u64){
-        use std::debug;
         let core = test::take_shared<Core>(scenario);
-        debug::print(&core::get_pool_balance(&core));
         assert!(core::get_pool_balance(&core) == amount,0);
         test::return_shared(core);
     }
