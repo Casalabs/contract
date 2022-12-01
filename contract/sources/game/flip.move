@@ -14,7 +14,6 @@ module suino::flip{
     use suino::core::{Self,Core};
     use suino::player::{Self,Player};
     use suino::lottery::{Lottery};
-
     use suino::game_utils::{
         lose_game_lottery_update,
         fee_deduct,
@@ -24,7 +23,7 @@ module suino::flip{
 
     const EInvalidAmount:u64 = 0;
     const EInvalidValue:u64 = 1;
-
+    
     
     struct Flip has key{
         id:UID,
@@ -104,7 +103,8 @@ module suino::flip{
         })
     }
        
-    public fun calculate_jackpot(random:&mut Random,value:vector<u64>,bet_amount:u64,ctx:&mut TxContext):u64{
+
+    fun calculate_jackpot(random:&mut Random,value:vector<u64>,bet_amount:u64,ctx:&mut TxContext):u64{
         
         //reverse because vector only pop_back [0,0,1] -> [1,0,0]
         vector::reverse(&mut value);
@@ -123,6 +123,8 @@ module suino::flip{
         };
         jackpot_amount
     }
+
+ 
     
 
     #[test_only]

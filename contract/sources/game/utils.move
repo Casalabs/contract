@@ -10,9 +10,9 @@ module suino::game_utils{
         calculate_percent_amount
     };
 
+    
     const EMaximumBet:u64 = 0;
     const EInvalidValue:u64 = 1;
-
 
     public fun lose_game_lottery_update(core:&Core,lottery:&mut Lottery,death_amount:u64){
         let lottery_percent = core::get_lottery_percent(core);
@@ -33,8 +33,7 @@ module suino::game_utils{
          random::game_after_set_random(rand,ctx);
     }
 
-
-    public fun check_maximum_bet_amount(bet_amount:u64,fee_percent:u8,value_count:u64,core:&Core){
+     public  fun check_maximum_bet_amount(bet_amount:u64,fee_percent:u8,value_count:u64,core:&Core){
         
         let fee_amount = calculate_percent_amount(bet_amount,fee_percent);
         
@@ -52,6 +51,7 @@ module suino::game_utils{
         // compare_percent
         assert!(compare_percent <= 10,EMaximumBet);
     }
+  
 
 }
 
