@@ -2,7 +2,6 @@
 module suino::utils_test{
     use suino::utils::{
         calculate_percent_amount,
-        
         vector_combine,
         keccak256,
         u64_from_vector

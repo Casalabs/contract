@@ -7,7 +7,7 @@ module suino::test_lottery{
     use suino::player::{Self,Player};
     use suino::core::{Self,Core,Ownership};
     use suino::random::{Self,Random};
-    // use std::debug;
+    
     use suino::test_utils::{balance_check};
     #[test]
     fun test_lottery(){

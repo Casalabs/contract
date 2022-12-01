@@ -28,10 +28,18 @@ module suino::race{
         minimum_balance:u64, //suino minimum betting amount * 10
     }
 
-    struct JackpotEvent has copy,drop{
+    struct LoseJackpotEvent has copy,drop{
         round:u64,
+        jackpot_value:u64,
         jackpot_amount:u64,
-        jackpot_addresses:vector<address>,
+        jackpot_members:vector<address>,
+    }
+    struct WinJackpotEvent has copy,drop{
+        round:u64,
+        jackpot_value:u64,
+        total_jackpot_amount:u64,
+        personal_jackpot_amount:u64,
+        jackpot_members:vector<address>,
     }
 
     const EInvalidBetValue:u64 = 0;
@@ -46,7 +54,6 @@ module suino::race{
             participants:vector::empty<address>(),
             bet_state:map::empty<u64,vector<address>>(),
             balance:balance::zero<SUI>(),
-            
             minimum_balance:10000,
         };
         transfer::share_object(race);
@@ -99,6 +106,12 @@ module suino::race{
         let exsists_jackpot:bool = map::contains(&race.bet_state,&jackpot_value);
         if (!exsists_jackpot){
             core::add_pool(core,balance);
+            event::emit(LoseJackpotEvent{
+                round:race.round,
+                jackpot_value,
+                jackpot_amount:0,
+                jackpot_members:vector::empty(),
+            });
             return
         };
       
@@ -117,13 +130,16 @@ module suino::race{
         };
 
         //only remaining balance treat
-        core::add_pool(core,balance);
+ 
         
-        event::emit(JackpotEvent{
+        event::emit(WinJackpotEvent{
              round:race.round,
-             jackpot_amount:jackpot_amt,
-             jackpot_addresses:jackpot_members,
+             jackpot_value,
+             total_jackpot_amount:balance::value(&balance),
+             personal_jackpot_amount:jackpot_amt,
+             jackpot_members,
         });
+        core::add_pool(core,balance);
         //participants and state init
         set_init(race);
     }

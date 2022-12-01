@@ -1,0 +1,29 @@
+2022-12-01T07:42:32.367791Z  INFO sui::client_commands: [1m----- Certificate ----[0m
+2022-12-01T07:42:32.368349Z  INFO sui::client_commands: Transaction Hash: DRxnYqLL5ZBI3idxRPHSbmVgE1U0W77SPEWlIutEncQ=
+2022-12-01T07:42:32.368355Z  INFO sui::client_commands: Transaction Signature: AA==@hgugWjx5g/Q6hMabvFFyNoULHeTb6CCx+vnZnM2JI4XcCZ7cEb2WaKtEkfUFM8YGhtPmeq+uiwYWYYKRlLqkDw==@30NEcbxQvIHo0dl2gJC699WJUEy2oPsESbpzJImApQQ=
+2022-12-01T07:42:32.368358Z  INFO sui::client_commands: Signed Authorities Bitmap: RoaringBitmap<[0, 1, 3]>
+2022-12-01T07:42:32.368361Z  INFO sui::client_commands: Transaction Kind : Publish
+2022-12-01T07:42:32.368363Z  INFO sui::client_commands: [1m----- Transaction Effects ----[0m
+2022-12-01T07:42:32.368366Z  INFO sui::client_commands: Status : Failure { error: "InsufficientGas" }
+2022-12-01T07:42:32.368368Z  INFO sui::client_commands: Mutated Objects:
+2022-12-01T07:42:32.368371Z  INFO sui::client_commands:   - ID: 0x07b727b4228795f613050f02e4cbdbd46def09f0 , Owner: Account Address ( 0x412ff4f1a86e23cbd8ceb6d136e404850e88b6ea )
+2022-12-01T07:42:40.381677Z  INFO sui::client_commands: [1m----- Certificate ----[0m
+2022-12-01T07:42:40.381746Z  INFO sui::client_commands: Transaction Hash: yzJy+dnbhGlkiR/rLCwjqrbnaNVU20pANIVZYYZ6KjA=
+2022-12-01T07:42:40.381750Z  INFO sui::client_commands: Transaction Signature: AA==@D+nb47zZQ7eaLEgk5t3EUr5Kuq0bXkMStRac1l4zxRwznBV6DtwuvmXWD68HsbIaQioTwRVNTtNHeAeaJKssDw==@30NEcbxQvIHo0dl2gJC699WJUEy2oPsESbpzJImApQQ=
+2022-12-01T07:42:40.381753Z  INFO sui::client_commands: Signed Authorities Bitmap: RoaringBitmap<[0, 1, 3]>
+2022-12-01T07:42:40.381755Z  INFO sui::client_commands: Transaction Kind : Publish
+2022-12-01T07:42:40.381757Z  INFO sui::client_commands: [1m----- Transaction Effects ----[0m
+2022-12-01T07:42:40.381759Z  INFO sui::client_commands: Status : Success
+2022-12-01T07:42:40.381761Z  INFO sui::client_commands: Created Objects:
+2022-12-01T07:42:40.381763Z  INFO sui::client_commands:   - ID: 0x01f32b852fd8e26acac6473423c71885986b2ce8 , Owner: Shared
+2022-12-01T07:42:40.381765Z  INFO sui::client_commands:   - ID: 0x0c7a824afe51fc26edbd65c35b678f1ecbef7315 , Owner: Shared
+2022-12-01T07:42:40.381767Z  INFO sui::client_commands:   - ID: 0x1ef6006f10154c82edccb126ce46333b0a5e2a6f , Owner: Immutable
+2022-12-01T07:42:40.381769Z  INFO sui::client_commands:   - ID: 0x403c09905a8e5a66e6999d7a4b80635fb3e1a857 , Owner: Shared
+2022-12-01T07:42:40.381771Z  INFO sui::client_commands:   - ID: 0x99cc06ba8c95ab62233ee3e5ad52b352460825a1 , Owner: Shared
+2022-12-01T07:42:40.381773Z  INFO sui::client_commands:   - ID: 0xa8be4fa21c040621e3b6fb4137a9631159b59d85 , Owner: Shared
+2022-12-01T07:42:40.381775Z  INFO sui::client_commands:   - ID: 0xe366376040c0ee1712bfe7404707b2f14df466f5 , Owner: Account Address ( 0x412ff4f1a86e23cbd8ceb6d136e404850e88b6ea )
+2022-12-01T07:42:40.381777Z  INFO sui::client_commands:   - ID: 0xe7b95bb0b1af09fdd13aa8c2f76b29ea3d1aa0d4 , Owner: Shared
+2022-12-01T07:42:40.381836Z  INFO sui::client_commands:   - ID: 0xf6e861edab4fd2e0172f06f01e659ef4cd70a8eb , Owner: Shared
+2022-12-01T07:42:40.381844Z  INFO sui::client_commands:   - ID: 0xf8fda75147f20945aa08e03b931c57c35f6b6b81 , Owner: Shared
+2022-12-01T07:42:40.381846Z  INFO sui::client_commands: Mutated Objects:
+2022-12-01T07:42:40.381849Z  INFO sui::client_commands:   - ID: 0x07b727b4228795f613050f02e4cbdbd46def09f0 , Owner: Account Address ( 0x412ff4f1a86e23cbd8ceb6d136e404850e88b6ea )

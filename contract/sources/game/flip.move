@@ -32,7 +32,10 @@ module suino::flip{
     }
     
     struct JackpotEvent has copy,drop{
-        betting_amount:u64,
+        is_jackpot:bool,
+        bet_amount:u64,
+        bet_value:vector<u64>,
+        jackpot_value:vector<u64>,
         jackpot_amount:u64,
         jackpot_address:address,
     }
@@ -56,14 +59,14 @@ module suino::flip{
         lottery:&mut Lottery,
         coin:&mut Coin<SUI>,
         bet_amount:u64,
-        value:vector<u64>, 
+        bet_value:vector<u64>, 
         ctx:&mut TxContext)
     {
         
         assert!(coin::value(coin) >= bet_amount,EInvalidAmount);
         assert!(bet_amount >= core::get_minimum_bet(core),EInvalidAmount);
-        assert!(vector::length(&value) > 0 && vector::length(&value) < 4,EInvalidValue);
-        check_maximum_bet_amount(bet_amount,core::get_gaming_fee_percent(core),vector::length(&value),core);
+        assert!(vector::length(&bet_value) > 0 && vector::length(&bet_value) < 4,EInvalidValue);
+        check_maximum_bet_amount(bet_amount,core::get_gaming_fee_percent(core),vector::length(&bet_value),core);
 
     
         
@@ -86,10 +89,18 @@ module suino::flip{
         player::count_up(player);
       
 
-        let jackpot_amount = calculate_jackpot(random,value,bet_amt,ctx);
+        let (jackpot_amount,jackpot_value) = calculate_jackpot(random,bet_value,bet_amt,ctx);
         //lottery prize up!
         if (jackpot_amount == 0){
             lose_game_lottery_update(core,lottery,bet_amt);
+            event::emit(JackpotEvent{
+                is_jackpot:false,
+                bet_amount,
+                bet_value,
+                jackpot_value,
+                jackpot_amount:0,
+                jackpot_address:sender(ctx),
+            });
             return
         };
            
@@ -97,23 +108,29 @@ module suino::flip{
         
         balance::join(coin_balance,jackpot);
         event::emit(JackpotEvent{
-            betting_amount:bet_amount,
-            jackpot_amount:jackpot_amount,
+            is_jackpot:true,
+            bet_amount,
+            bet_value,
+            jackpot_value,
+            jackpot_amount,
             jackpot_address:sender(ctx),
         })
     }
        
 
-    fun calculate_jackpot(random:&mut Random,value:vector<u64>,bet_amount:u64,ctx:&mut TxContext):u64{
+    fun calculate_jackpot(random:&mut Random,bet_value:vector<u64>,bet_amount:u64,ctx:&mut TxContext):(u64,vector<u64>){
         
         //reverse because vector only pop_back [0,0,1] -> [1,0,0]
-        vector::reverse(&mut value);
-
+        vector::reverse(&mut bet_value);
+        let jackpot_value = vector::empty();
+        
         let jackpot_amount = bet_amount;
-         while(!vector::is_empty<u64>(&value)) {
-            let compare_number = vector::pop_back(&mut value);
+      
+        while(!vector::is_empty<u64>(&bet_value)) {
+            let compare_number = vector::pop_back(&mut bet_value);
             assert!(compare_number == 0 || compare_number == 1,EInvalidValue);
             let jackpot_number = random::get_random_int(random,ctx) % 2;
+            vector::push_back(&mut jackpot_value,jackpot_number);
             if (jackpot_number != compare_number){
                     jackpot_amount = 0;
                     break
@@ -121,7 +138,7 @@ module suino::flip{
             jackpot_amount = jackpot_amount * 2;
             set_random(random,ctx);
         };
-        jackpot_amount
+        (jackpot_amount,jackpot_value)
     }
 
  
