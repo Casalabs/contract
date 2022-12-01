@@ -91,6 +91,7 @@ module suino::flip{
 
         let (jackpot_amount,jackpot_value) = calculate_jackpot(random,bet_value,bet_amt,ctx);
         //lottery prize up!
+        set_random(random,ctx);
         if (jackpot_amount == 0){
             lose_game_lottery_update(core,lottery,bet_amt);
             event::emit(JackpotEvent{
@@ -138,7 +139,7 @@ module suino::flip{
             jackpot_amount = jackpot_amount * 2;
             set_random(random,ctx);
         };
-        set_random(random,ctx);
+       
         (jackpot_amount,jackpot_value)
     }
 
