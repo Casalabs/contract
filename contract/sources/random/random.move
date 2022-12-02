@@ -5,27 +5,27 @@ module suino::random{
     use sui::transfer;
     use sui::ecdsa;
     use suino::utils;
-
+    use suino::core::{Ownership};
     
     struct Random has key{
         id:UID,
         random_hash:vector<u8>,
     }
     
-    fun init(ctx:&mut TxContext){
-        let vec = b"casino";
-        let random_hash = ecdsa::keccak256(&vec);
+    // fun init(ctx:&mut TxContext){
+    //     let vec = b"casino";
+    //     let random_hash = ecdsa::keccak256(&vec);
 
-        let random = Random{
-            id:object::new(ctx),
-            random_hash
-        };
-        transfer::share_object(random);
-    }
+    //     let random = Random{
+    //         id:object::new(ctx),
+    //         random_hash
+    //     };
+    //     transfer::share_object(random);
+    // }
     
-    public entry fun set_random(r:&mut Random,salt:vector<u8>,ctx:&mut TxContext){
+    public entry fun set_random(_:&Ownership,r:&mut Random,salt:vector<u8>,ctx:&mut TxContext){
        
-        // r.lastMaker = sender(ctx);
+        
         let salt_hash = utils::keccak256(salt);
         let object_hash = ctx_hash(ctx);
         

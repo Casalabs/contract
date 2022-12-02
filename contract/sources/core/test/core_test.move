@@ -3,7 +3,7 @@
 module suino::core_test{
   
     use suino::core::{Self,Core,Ownership};
-    use suino::nft::{Self,SuinoNFTState};
+    use suino::nft::{Self,NFTState};
     use sui::test_scenario::{Self as test,next_tx,ctx,Scenario};
     use sui::balance::{Self};
     use sui::transfer;
@@ -157,7 +157,8 @@ module suino::core_test{
     
         next_tx(scenario,owner);
         {
-            let state = test::take_shared<SuinoNFTState>(scenario);
+            let state = test::take_shared<NFTState>(scenario);
+            
             nft::test_mint_nft(&mut state,user,ctx(scenario));
             nft::test_mint_nft(&mut state,user2,ctx(scenario));
             nft::test_mint_nft(&mut state,user3,ctx(scenario));
@@ -179,7 +180,7 @@ module suino::core_test{
         next_tx(scenario,owner);
         {
             let core = test::take_shared<Core>(scenario);
-            let state = test::take_shared<SuinoNFTState>(scenario);
+            let state = test::take_shared<NFTState>(scenario);
             let ownership = test::take_from_sender<Ownership>(scenario);
             core::reward_share(&ownership,&mut core,&state,ctx(scenario));
             assert!(core::get_reward(&core) == 1,0);

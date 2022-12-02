@@ -25,7 +25,7 @@ module suino::race{
         bet_state:VecMap<u64,vector<address>>,
         balance:Balance<SUI>,
     
-        minimum_balance:u64, //suino minimum betting amount * 10
+        minimum_prize:u64, //suino minimum betting amount * 10
     }
 
     struct LoseJackpotEvent has copy,drop{
@@ -54,7 +54,7 @@ module suino::race{
             participants:vector::empty<address>(),
             bet_state:map::empty<u64,vector<address>>(),
             balance:balance::zero<SUI>(),
-            minimum_balance:10000,
+            minimum_prize:10000,
         };
         transfer::share_object(race);
     }
@@ -93,8 +93,8 @@ module suino::race{
         };
 
 
-        if (get_balance(race) < race.minimum_balance){
-            let supply_balance = race.minimum_balance - get_balance(race);
+        if (get_balance(race) < race.minimum_prize){
+            let supply_balance = race.minimum_prize - get_balance(race);
             let balance = core::remove_pool(core,supply_balance);
             add_balance(race,balance);
         };
@@ -129,7 +129,7 @@ module suino::race{
             transfer::transfer(coin::from_balance<SUI>(jackpot_balance,ctx),jackpot_member)
         };
 
-        //only remaining balance treat
+        
  
         
         event::emit(WinJackpotEvent{
@@ -139,13 +139,15 @@ module suino::race{
              personal_jackpot_amount:jackpot_amt,
              jackpot_members,
         });
+        //only remaining balance treat
         core::add_pool(core,balance);
+        
         //participants and state init
         set_init(race);
     }
 
-    entry fun set_minimum_balance(_:&Ownership,race:&mut Race,amount:u64){
-        race.minimum_balance = amount;
+    entry fun set_minimum_prize(_:&Ownership,race:&mut Race,amount:u64){
+        race.minimum_prize = amount;
     }    
    
     entry fun set_description(_:&Ownership,race:&mut Race,desc:vector<u8>){
@@ -181,6 +183,7 @@ module suino::race{
         let race_value = map::get_mut(&mut race.bet_state,&bet_value);
         vector::push_back(race_value,sender(ctx));
     }
+    
     public fun set_participants(race:&mut Race,ctx:&mut TxContext){
         assert!(!vector::contains(&race.participants,&sender(ctx)),0 );
         vector::push_back(&mut race.participants,sender(ctx));
@@ -205,7 +208,7 @@ module suino::race{
             participants:vector::empty<address>(),
             bet_state:map::empty<u64,vector<address>>(),
             balance:balance::zero<SUI>(),
-            minimum_balance:10000,
+            minimum_prize:10000,
         };
         transfer::share_object(race);
     }

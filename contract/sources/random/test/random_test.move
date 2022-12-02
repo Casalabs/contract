@@ -3,6 +3,7 @@ module suino::random_test{
     use sui::test_scenario::{Self as test,next_tx,ctx};
     use suino::random::{Self,Random};
     use suino::utils;
+    use suino::core::{Self,Ownership};
     // use std::debug;
     
  
@@ -14,12 +15,13 @@ module suino::random_test{
         let scenario = &mut scenario_val;
         //init
         next_tx(scenario,owner);
-        {
+        {   
+            core::init_for_testing(ctx(scenario));
             random::test_init(ctx(scenario));
         };
 
         // get_random_hash test
-        next_tx(scenario,user);
+        next_tx(scenario,owner);
         {
         let random = test::take_shared<Random>(scenario);
         let init_value = b"casino";
@@ -31,13 +33,15 @@ module suino::random_test{
         };
 
         //set_random test
-        next_tx(scenario,user);
+        next_tx(scenario,owner);
         {
           let random = test::take_shared<Random>(scenario);
           let now_random_hash = random::get_random_hash(&random);
-          random::set_random(&mut random,b"casino",ctx(scenario));
+          let ownership = test::take_from_sender<Ownership>(scenario);
+          random::set_random(&ownership,&mut random,b"casino",ctx(scenario));
           assert!(now_random_hash != random::get_random_hash(&random),0);
           test::return_shared(random);
+          test::return_to_sender(scenario,ownership);
         };
 
         next_tx(scenario,user);

@@ -25,6 +25,8 @@ module suino::player{
         id: UID,
         owner:address,
         fee_percent:u64,
+        name:String,
+        description:String,
     }
     struct Listing has store {
         item: Player,
@@ -37,6 +39,8 @@ module suino::player{
             id:object::new(ctx),
             owner:sender(ctx),
             fee_percent:5,
+            name:string::utf8(b"Suino Lottery Ticket Market Place"),
+            description:string::utf8(b"Suino Lottery Ticket Market Place"),
         };
         transfer::share_object(marketplace);
     }
@@ -182,6 +186,8 @@ module suino::player{
             id:object::new(ctx),
             owner:sender(ctx),
             fee_percent:5,
+            name:string::utf8(b"Suino Lottery Ticket Market Place"),
+            description:string::utf8(b"Suino Lottery Ticket Market Place"),
         };
         transfer::transfer(player,sender(ctx));
         transfer::share_object(marketplace);

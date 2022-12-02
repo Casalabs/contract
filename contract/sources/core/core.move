@@ -8,7 +8,7 @@ module suino::core{
     use sui::transfer;
     use sui::tx_context::{TxContext,sender};
     use sui::vec_map as map;
-    use suino::nft::{Self,SuinoNFTState};
+    use suino::nft::{Self,NFTState};
     
 
     #[test_only]
@@ -33,7 +33,7 @@ module suino::core{
         owners:u64,
         sign:VecSet<address>,
         lock:bool,
-     
+        
     }
 
     struct Ownership has key{
@@ -56,7 +56,6 @@ module suino::core{
             owners:1,
             sign:set::empty(),
             lock:true,
-          
         };
         let ownership = Ownership{
             id:object::new(ctx)
@@ -132,7 +131,7 @@ module suino::core{
 
 
 
-    public(friend) entry fun reward_share(_:&Ownership,core:&mut Core,nft:&SuinoNFTState,ctx:&mut TxContext){
+    public(friend) entry fun reward_share(_:&Ownership,core:&mut Core,nft:&NFTState,ctx:&mut TxContext){
         
         let holders = nft::get_holders(nft);
         let holders_count = map::size(&holders);

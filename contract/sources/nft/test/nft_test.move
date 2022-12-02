@@ -1,6 +1,6 @@
 #[test_only]
 module suino::nft_test{
-    use suino::nft::{Self,SuinoNFT,SuinoNFTState,Marketplace};
+    use suino::nft::{Self,NFT,NFTState,Marketplace,Ownership};
     use sui::test_scenario::{Self as test,Scenario,next_tx,ctx};
     use sui::coin::{Self,Coin};
     
@@ -9,7 +9,7 @@ module suino::nft_test{
     use suino::test_utils::{coin_mint,balance_check};
     
      struct Listing<phantom C> has store {
-        item: SuinoNFT,
+        item: NFT,
         ask: u64, // Coin<C>
         owner: address,
     }
@@ -32,29 +32,19 @@ module suino::nft_test{
         //mint test
         next_tx(scenario,owner);
         {   
-            let state = test::take_shared<SuinoNFTState>(scenario);
-            nft::mint(
-                &mut state,
-                b"suino",
-                b"nft",
-                b"url",
-                ctx(scenario)
-                );
-            
-            test::return_shared(state);
-            
+            mint(scenario);
         };
 
      
         next_tx(scenario,owner);
         {
-            let state = test::take_shared<SuinoNFTState>(scenario);
-            let nft = test::take_from_sender<SuinoNFT>(scenario);
+            let state = test::take_shared<NFTState>(scenario);
+            let nft = test::take_from_sender<NFT>(scenario);
             id = object::id(&nft);
             let nft_holder = nft::get_holder(&state,&object::id(&nft));
             
             assert!(nft_holder == owner,0);
-            test::return_to_sender<SuinoNFT>(scenario,nft);
+            test::return_to_sender<NFT>(scenario,nft);
             test::return_shared(state);
         };
 
@@ -136,9 +126,24 @@ module suino::nft_test{
 
 
     //=========utils==================
+    fun mint(scenario:&mut Scenario){
+        let state = test::take_shared<NFTState>(scenario);
+        let ownership = test::take_from_sender<Ownership>(scenario);
+        nft::mint(
+            &ownership,
+            &mut state,
+            b"suino",
+            b"nft",
+            b"url",
+            ctx(scenario)
+        );
+        test::return_to_sender(scenario,ownership);
+        test::return_shared(state);
+    }
+
     fun buy_and_take(scenario:&mut Scenario,id:ID,amount:u64){
         let market = test::take_shared<Marketplace>(scenario);
-        let state = test::take_shared<SuinoNFTState>(scenario);
+        let state = test::take_shared<NFTState>(scenario);
         let coin = test::take_from_sender<Coin<SUI>>(scenario);
         let paid_coin = coin::split(&mut coin,amount,ctx(scenario));
         nft::buy_and_take(&mut market,&mut state,id,paid_coin,ctx(scenario));
@@ -149,7 +154,7 @@ module suino::nft_test{
 
 
     fun list(scenario:&mut Scenario,amount:u64){
-            let nft = test::take_from_sender<SuinoNFT>(scenario);
+            let nft = test::take_from_sender<NFT>(scenario);
             
             let market = test::take_shared<Marketplace>(scenario);
             
@@ -159,17 +164,17 @@ module suino::nft_test{
 
     fun delist(scenario:&mut Scenario,id:ID){
         let market = test::take_shared<Marketplace>(scenario);
-        nft::delist_and_take<Coin<SUI>>(&mut market,id,ctx(scenario));
+        nft::delist_and_take(&mut market,id,ctx(scenario));
         test::return_shared(market);
     }
 
     fun ownership_test(scenario:&mut Scenario,compare_id:ID){
     
-        let nft = test::take_from_sender<SuinoNFT>(scenario);
+        let nft = test::take_from_sender<NFT>(scenario);
         assert!(object::id(&nft) == compare_id , 0);
         
         //state test
-        let state = test::take_shared<SuinoNFTState>(scenario);
+        let state = test::take_shared<NFTState>(scenario);
 
         let nft_holder = nft::get_holder(&state,&compare_id);
         assert!(nft_holder == test::sender(scenario),0);
@@ -178,13 +183,13 @@ module suino::nft_test{
         test::return_to_sender(scenario,nft);
     }
     fun transfer(scenario:&mut Scenario,recipent:address){
-            let state = test::take_shared<SuinoNFTState>(scenario);
-            let nft = test::take_from_sender<SuinoNFT>(scenario);
+            let state = test::take_shared<NFTState>(scenario);
+            let nft = test::take_from_sender<NFT>(scenario);
             let coin = test::take_from_sender<Coin<SUI>>(scenario);
             nft::transfer(&mut state,nft,&mut coin,recipent,ctx(scenario));
             test::return_to_sender(scenario,coin);
             test::return_shared(state);
-        }
+    }
 
  
 

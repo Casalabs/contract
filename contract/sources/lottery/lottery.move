@@ -76,6 +76,14 @@ module suino::lottery{
         let exsists_jackpot = map::contains(&lottery.tickets,&jackpot_number);
         if (!exsists_jackpot){
             lottery.tickets =map::empty<vector<u8>,vector<address>>();
+            event::emit(JackpotEvent{
+            jackpot_round:lottery.round,
+            jackpot_amount:0,
+            jackpot_number,
+            jackpot_members:vector::empty<address>(),
+            jackpot_count:0,
+            });
+            lottery.round = lottery.round + 1;
             return
         };
 
@@ -91,14 +99,17 @@ module suino::lottery{
             transfer::transfer(coin::from_balance<SUI>(balance,ctx),jackpot_member);
         };
        
-        lottery.prize = 0;
+        
+        
         event::emit(JackpotEvent{
             jackpot_round:lottery.round,
             jackpot_amount,
             jackpot_number,
             jackpot_members:*jackpot_members,
             jackpot_count,
-        })
+        });
+        lottery.prize = 0;
+        lottery.round = lottery.round + 1;
     }
 
     //------------User-----------------
