@@ -10,7 +10,7 @@ module suino::race_test{
         Player,
         test_only_player,
     };
-    use suino::test_utils::{balance_check,coin_mint};
+    use suino::test_utils::{balance_check,coin_mint,core_pool_check};
 
     
     #[test]
@@ -32,16 +32,16 @@ module suino::race_test{
         next_tx(scenario,owner);
         {
             init_for_testing(scenario);
-            coin_and_player_mint(scenario,user,1000,0);
-            coin_and_player_mint(scenario,user2,1000,0);
-            coin_and_player_mint(scenario,user3,1000,0);
-            coin_and_player_mint(scenario,user4,1000,0);
-            coin_and_player_mint(scenario,user5,1000,0);
-            coin_and_player_mint(scenario,user6,1000,0);
-            coin_and_player_mint(scenario,user7,1000,0);
-            coin_and_player_mint(scenario,user8,1000,0);
-            coin_and_player_mint(scenario,user9,1000,0);
-            coin_and_player_mint(scenario,user10,1000,0);
+            coin_and_player_mint(scenario,user,10000,0);
+            coin_and_player_mint(scenario,user2,10000,0);
+            coin_and_player_mint(scenario,user3,10000,0);
+            coin_and_player_mint(scenario,user4,10000,0);
+            coin_and_player_mint(scenario,user5,10000,0);
+            coin_and_player_mint(scenario,user6,10000,0);
+            coin_and_player_mint(scenario,user7,10000,0);
+            coin_and_player_mint(scenario,user8,10000,0);
+            coin_and_player_mint(scenario,user9,10000,0);
+            coin_and_player_mint(scenario,user10,10000,0);
         };
         next_tx(scenario,user);
         {
@@ -93,24 +93,24 @@ module suino::race_test{
 
         next_tx(scenario,user);
         {   
-           balance_check(scenario,2_500);
+           balance_check(scenario,2_5000);
         //   balance_print(scenario);
         };
          next_tx(scenario,user2);
         {
-            balance_check(scenario,2_500);
+            balance_check(scenario,2_5000);
             // balance_print(scenario);
         };
 
       
         next_tx(scenario,user3);
         {
-            balance_check(scenario,2_500);
+            balance_check(scenario,2_5000);
             // balance_print(scenario);
         };
         next_tx(scenario,user4);
         {
-            balance_check(scenario,2_500);
+            balance_check(scenario,2_5000);
             // balance_print(scenario);
         };
         next_tx(scenario,user5);
@@ -159,7 +159,7 @@ module suino::race_test{
         next_tx(scenario,owner);
         {
             init_for_testing(scenario);
-            coin_and_player_mint(scenario,user,1000,0);
+            coin_and_player_mint(scenario,user,10000,0);
         };
         next_tx(scenario,user);
         {   
@@ -177,7 +177,7 @@ module suino::race_test{
             //minimum_balance = 10000
             
             // jackpot_balance = 10000
-            balance_check(scenario,10_000);
+            balance_check(scenario,100_000);
         };
         test::end(scenario_val);
     }
@@ -191,7 +191,7 @@ module suino::race_test{
         next_tx(scenario,owner);
         {
             init_for_testing(scenario);
-            coin_and_player_mint(scenario,user,1000,0);
+            coin_and_player_mint(scenario,user,10000,0);
         };
         next_tx(scenario,user);
         {   
@@ -208,7 +208,7 @@ module suino::race_test{
 
         next_tx(scenario,user);
         {
-           core_pool_check(scenario,1_000_950);
+           core_pool_check(scenario,1_009_500);
         };
         test::end(scenario_val);
     }
@@ -258,7 +258,7 @@ module suino::race_test{
 
     fun init_for_testing(scenario:&mut Scenario){
         race::init_for_testing(ctx(scenario));
-        core::test_core(5,1000000,0,ctx(scenario));
+        core::test_core(5,1_000_000,0,ctx(scenario));
         random::test_init(ctx(scenario));
     }
 
@@ -298,11 +298,7 @@ module suino::race_test{
         test::return_shared(core);
     }
 
-    fun core_pool_check(scenario:&mut Scenario,amount:u64){
-        let core = test::take_shared<Core>(scenario);
-        assert!(core::get_pool_balance(&core) == amount,0);
-        test::return_shared(core);
-    }
+
     fun coin_and_player_mint(
         scenario:&mut Scenario,
         recipeint:address,

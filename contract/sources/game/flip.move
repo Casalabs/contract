@@ -11,7 +11,7 @@ module suino::flip{
     use sui::event;
 
     use suino::random::{Self,Random};
-    use suino::core::{Self,Core};
+    use suino::core::{Self,Core,Ownership};
     use suino::player::{Self,Player};
     use suino::lottery::{Lottery};
     use suino::game_utils::{
@@ -29,6 +29,7 @@ module suino::flip{
         id:UID,
         name:String,
         description:String,
+        minimum_bet:u64,
     }
     
     struct JackpotEvent has copy,drop{
@@ -46,13 +47,18 @@ module suino::flip{
             id:object::new(ctx),
             name:string::utf8(b"Suino Coin Flip"),
             description:string::utf8(b"can get at least 2 to 8 times."),
+            minimum_bet:10000,
         };
         transfer::share_object(flip);
+    }
+
+    entry fun set_minimum_bet(_:&Ownership,flip:&mut Flip,amount:u64){
+         flip.minimum_bet = amount;
     }
   
   
     public entry fun bet(
-        _:&Flip,
+        flip:&Flip,
         player:&mut Player,
         core:&mut Core,
         random:&mut Random,
@@ -62,9 +68,9 @@ module suino::flip{
         bet_value:vector<u64>, 
         ctx:&mut TxContext)
     {
-        
+        assert!(sender(ctx) != random::get_last_maker(random),0);
         assert!(coin::value(coin) >= bet_amount,EInvalidAmount);
-        assert!(bet_amount >= core::get_minimum_bet(core),EInvalidAmount);
+        assert!(bet_amount >= flip.minimum_bet,EInvalidAmount);
         assert!(vector::length(&bet_value) > 0 && vector::length(&bet_value) < 4,EInvalidValue);
         check_maximum_bet_amount(bet_amount,core::get_gaming_fee_percent(core),vector::length(&bet_value),core);
 
@@ -131,7 +137,7 @@ module suino::flip{
         while(!vector::is_empty<u64>(&bet_value)) {
             let compare_number = vector::pop_back(&mut bet_value);
             assert!(compare_number == 0 || compare_number == 1,EInvalidValue);
-            let jackpot_number = random::get_random_int(random,ctx) % 2;
+            let jackpot_number = random::get_random_number(random,ctx) % 2;
             vector::push_back(&mut jackpot_value,jackpot_number);
             if (jackpot_number != compare_number){
                     jackpot_amount = 0;
@@ -144,15 +150,19 @@ module suino::flip{
         (jackpot_amount,jackpot_value)
     }
 
- 
     
-
+    public fun get_minimum_bet(flip:&Flip):u64{
+        flip.minimum_bet
+    }
+    
+  
     #[test_only]
     public fun init_for_testing(ctx:&mut TxContext){
         let flip = Flip{
             id:object::new(ctx),
             name:string::utf8(b"Suino"),
             description:string::utf8(b"Coin Flip"),
+            minimum_bet:10000,
         };
         transfer::share_object(flip);
     }

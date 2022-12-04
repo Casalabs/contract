@@ -5,8 +5,8 @@ module suino::test_utils{
     use sui::coin::{Self,Coin};
     use sui::sui::SUI;
     
+    use suino::core::{Self,Core};
     
-    use std::debug;
 
     
     public fun coin_mint(scenario:&mut Scenario,user:address,amount:u64){
@@ -21,10 +21,15 @@ module suino::test_utils{
     }
     public fun balance_print(scenario:&mut Scenario){
         let coin = test::take_from_sender<Coin<SUI>>(scenario);
-        debug::print(&coin::value(&coin));
+        
         test::return_to_sender(scenario,coin);
     }
-
+    public fun core_pool_check(scenario:&mut Scenario,amount:u64){
+        let core = test::take_shared<Core>(scenario);
+        
+        assert!(core::get_pool_balance(&core) == amount,0);
+        test::return_shared(core);
+    }
     
    
 }

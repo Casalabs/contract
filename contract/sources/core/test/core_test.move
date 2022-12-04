@@ -259,31 +259,31 @@ module suino::core_test{
     }
 
 
-    #[test]
-    fun set_minimin_amount_(){
-        let owner = @0xC0FFEE;
+    // #[test]
+    // fun set_minimin_amount_(){
+    //     let owner = @0xC0FFEE;
     
-        let scenario_val = test::begin(owner);
-        let scenario = &mut scenario_val;
+    //     let scenario_val = test::begin(owner);
+    //     let scenario = &mut scenario_val;
 
-        next_tx(scenario,owner);
-        {
-            core::init_for_testing(ctx(scenario));
-        };
-        next_tx(scenario,owner);
-        {
-           let ownership = test::take_from_sender<Ownership>(scenario);
-           let core = test::take_shared<Core>(scenario);
-           let minimum_bet = core::get_minimum_bet(&core);
-           core::set_minimum_bet(&ownership,&mut core,100000);
-           let change_minimum = core::get_minimum_bet(&core);
-           assert!(minimum_bet != change_minimum,0);
-           assert!(change_minimum == 100000,0);
-           test::return_shared(core);
-           test::return_to_sender(scenario,ownership);
-        };
-        test::end(scenario_val);
-    }
+    //     next_tx(scenario,owner);
+    //     {
+    //         core::init_for_testing(ctx(scenario));
+    //     };
+    //     next_tx(scenario,owner);
+    //     {
+    //        let ownership = test::take_from_sender<Ownership>(scenario);
+    //        let core = test::take_shared<Core>(scenario);
+    //        let minimum_bet = core::get_minimum_bet(&core);
+    //        core::set_minimum_bet(&ownership,&mut core,100000);
+    //        let change_minimum = core::get_minimum_bet(&core);
+    //        assert!(minimum_bet != change_minimum,0);
+    //        assert!(change_minimum == 100000,0);
+    //        test::return_shared(core);
+    //        test::return_to_sender(scenario,ownership);
+    //     };
+    //     test::end(scenario_val);
+    // }
 
     #[test]
     #[expected_failure(abort_code = 3)]

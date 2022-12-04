@@ -27,7 +27,7 @@ module suino::random_test{
         let init_value = b"casino";
         let init_hash = utils::keccak256(init_value);
         
-        let random_hash = random::get_random_hash(&random);
+        let random_hash = random::get_hash(&random);
         assert!(init_hash == random_hash,0);
         test::return_shared(random);
         };
@@ -36,10 +36,10 @@ module suino::random_test{
         next_tx(scenario,owner);
         {
           let random = test::take_shared<Random>(scenario);
-          let now_random_hash = random::get_random_hash(&random);
+          let now_random_hash = random::get_hash(&random);
           let ownership = test::take_from_sender<Ownership>(scenario);
-          random::set_random(&ownership,&mut random,b"casino",ctx(scenario));
-          assert!(now_random_hash != random::get_random_hash(&random),0);
+          random::set_random(&mut random,b"casino",ctx(scenario));
+          assert!(now_random_hash != random::get_hash(&random),0);
           test::return_shared(random);
           test::return_to_sender(scenario,ownership);
         };
@@ -47,9 +47,9 @@ module suino::random_test{
         next_tx(scenario,user);
         {
             let random = test::take_shared<Random>(scenario);
-            let now_random_hash = random::get_random_hash(&random);
+            let now_random_hash = random::get_hash(&random);
             random::game_after_set_random(&mut random,ctx(scenario));
-            assert!(now_random_hash != random::get_random_hash(&random),0);
+            assert!(now_random_hash != random::get_hash(&random),0);
             test::return_shared(random);
         };
 

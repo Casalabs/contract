@@ -67,7 +67,7 @@ module suino::lottery{
         let jackpot_number = vector::empty<u8>();
         while(vector::length(&jackpot_number) < 6){
             let number = {
-                ((random::get_random_int(random,ctx) % 10) as u8)
+                ((random::get_random_number(random,ctx) % 10) as u8)
             };
             vector::push_back(&mut jackpot_number,number);
             random::game_after_set_random(random,ctx);

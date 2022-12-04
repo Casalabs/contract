@@ -24,7 +24,7 @@ module suino::race{
         participants:vector<address>,
         bet_state:VecMap<u64,vector<address>>,
         balance:Balance<SUI>,
-    
+        minimum_bet:u64,
         minimum_prize:u64, //suino minimum betting amount * 10
     }
 
@@ -54,7 +54,8 @@ module suino::race{
             participants:vector::empty<address>(),
             bet_state:map::empty<u64,vector<address>>(),
             balance:balance::zero<SUI>(),
-            minimum_prize:10000,
+            minimum_bet:10000,
+            minimum_prize:100000,
         };
         transfer::share_object(race);
     }
@@ -71,9 +72,9 @@ module suino::race{
         ctx:&mut TxContext)
     {
         assert!(bet_value < 11,EInvalidBetValue);
-        assert!(coin::value(coin) >= core::get_minimum_bet(core),ENotEnoughBalance);
+        assert!(coin::value(coin) >= race.minimum_bet,ENotEnoughBalance);
         let coin_balance = coin::balance_mut(coin);
-        let bet = balance::split(coin_balance,core::get_minimum_bet(core));
+        let bet = balance::split(coin_balance,race.minimum_bet);
         player::count_up(player);
         fee_deduct(core,&mut bet);
         add_balance(race,bet);
@@ -89,7 +90,7 @@ module suino::race{
 
         set_random(random,ctx);
         let jackpot_value = {
-            random::get_random_int(random,ctx) % 10
+            random::get_random_number(random,ctx) % 10
         };
 
 
@@ -145,9 +146,11 @@ module suino::race{
         //participants and state init
         set_init(race);
     }
+    
 
-    entry fun set_minimum_prize(_:&Ownership,race:&mut Race,amount:u64){
+    entry fun set_minimum_bet(_:&Ownership,race:&mut Race,amount:u64){
         race.minimum_prize = amount;
+        race.minimum_prize = amount * 10;
     }    
    
     entry fun set_description(_:&Ownership,race:&mut Race,desc:vector<u8>){
@@ -208,7 +211,8 @@ module suino::race{
             participants:vector::empty<address>(),
             bet_state:map::empty<u64,vector<address>>(),
             balance:balance::zero<SUI>(),
-            minimum_prize:10000,
+            minimum_bet:10000,
+            minimum_prize:100000,
         };
         transfer::share_object(race);
     }

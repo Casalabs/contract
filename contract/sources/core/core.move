@@ -27,7 +27,6 @@ module suino::core{
         description:String,
         pool:Balance<SUI>,
         gaming_fee_percent:u8,
-        minimum_bet:u64,
         reward_pool:Balance<SUI>,
         lottery_percent:u8,
         owners:u64,
@@ -51,7 +50,6 @@ module suino::core{
             pool:balance::zero<SUI>(),
             gaming_fee_percent:5,
             reward_pool:balance::zero<SUI>(),
-            minimum_bet:1000,
             lottery_percent:20,
             owners:1,
             sign:set::empty(),
@@ -125,9 +123,9 @@ module suino::core{
         core.lottery_percent = percent;
     }
 
-     public(friend) entry fun set_minimum_bet(_:&Ownership,core:&mut Core,amount:u64){
-        core.minimum_bet = amount;
-    }
+    //  public(friend) entry fun set_minimum_bet(_:&Ownership,core:&mut Core,amount:u64){
+    //     core.minimum_bet = amount;
+    // }
 
 
 
@@ -200,9 +198,9 @@ module suino::core{
     public fun get_lottery_percent(core:&Core):u8{
         core.lottery_percent
     }
-     public fun get_minimum_bet(core:&Core):u64{
-        core.minimum_bet
-    }
+    //  public fun get_minimum_bet(core:&Core):u64{
+    //     core.minimum_bet
+    // }
 
    
 
@@ -215,7 +213,7 @@ module suino::core{
             pool:balance::zero<SUI>(),
             gaming_fee_percent:5,
             reward_pool:balance::zero<SUI>(),
-            minimum_bet:1000,
+            // minimum_bet:1000,
             lottery_percent:20,
             owners:1,
             sign:set::empty(),
@@ -240,7 +238,7 @@ module suino::core{
             description:string::utf8(b"Core contains the information needed for Suino."),
             pool:balance::create_for_testing<SUI>(pool_balance),
             gaming_fee_percent,
-            minimum_bet:1000,
+            // minimum_bet:1000,
             lottery_percent:20,
             reward_pool:balance::create_for_testing<SUI>(reward_balance),
             owners:1,
