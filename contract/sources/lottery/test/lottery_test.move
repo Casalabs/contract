@@ -69,7 +69,7 @@ module suino::test_lottery{
         {   
             let lottery = test::take_shared<Lottery>(scenario);
             let player = test::take_from_sender<Player>(scenario);
-            let numbers = vector[vector[2,8,2,2,2,3]];
+            let numbers = vector[vector[0,2,9,0,5,8]];
             
             lottery::buy_ticket(&mut lottery,&mut player,numbers,ctx(scenario));
             test::return_to_sender<Player>(scenario,player);
@@ -77,11 +77,11 @@ module suino::test_lottery{
         };
 
         next_tx(scenario,user2);
-        {
+        {   
             let lottery = test::take_shared<Lottery>(scenario);
             let player = test::take_from_sender<Player>(scenario);
-            let numbers = vector[vector[2,8,2,2,2,3]];
-            
+            let numbers = vector[vector[0,2,9,0,5,8]];
+          
             lottery::buy_ticket(&mut lottery,&mut player,numbers,ctx(scenario));
             
             test::return_to_sender<Player>(scenario,player);
@@ -190,14 +190,14 @@ module suino::test_lottery{
 
     //============utils==================
     fun jackpot(scenario:&mut Scenario){
-    
+        use std::debug;
         let lottery = test::take_shared<Lottery>(scenario);
         let random = test::take_shared<Random>(scenario);
         let ownership = test::take_from_sender<Ownership>(scenario);
         let pool = test::take_shared<Core>(scenario);
 
         lottery::jackpot(&ownership,&mut random,&mut pool,&mut lottery,ctx(scenario));
-
+        debug::print(&lottery::get_jackpot(&lottery));
         test::return_to_sender(scenario,ownership);
         test::return_shared(lottery);
         test::return_shared(random);

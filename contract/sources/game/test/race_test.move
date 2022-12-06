@@ -93,24 +93,24 @@ module suino::race_test{
 
         next_tx(scenario,user);
         {   
-           balance_check(scenario,2_5000);
+           balance_check(scenario,0);
         //   balance_print(scenario);
         };
          next_tx(scenario,user2);
         {
-            balance_check(scenario,2_5000);
+            balance_check(scenario,0);
             // balance_print(scenario);
         };
 
       
         next_tx(scenario,user3);
         {
-            balance_check(scenario,2_5000);
+            balance_check(scenario,0);
             // balance_print(scenario);
         };
         next_tx(scenario,user4);
         {
-            balance_check(scenario,2_5000);
+            balance_check(scenario,0);
             // balance_print(scenario);
         };
         next_tx(scenario,user5);
@@ -142,7 +142,7 @@ module suino::race_test{
         };
         next_tx(scenario,user10);
         {
-            balance_check(scenario,0);
+            balance_check(scenario,100_000);
             // balance_print(scenario);
         };
         test::end(scenario_val);
@@ -163,7 +163,7 @@ module suino::race_test{
         };
         next_tx(scenario,user);
         {   
-            bet(scenario,3);
+            bet(scenario,0);
         };
      
         next_tx(scenario,owner);
@@ -195,7 +195,7 @@ module suino::race_test{
         };
         next_tx(scenario,user);
         {   
-            bet(scenario,0);
+            bet(scenario,1);
         };
         next_tx(scenario,owner);
         {

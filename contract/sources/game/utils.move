@@ -30,10 +30,10 @@ module suino::game_utils{
 
 
     public fun set_random(rand:&mut Random,ctx:&mut TxContext){
-         random::game_after_set_random(rand,ctx);
+         random::game_set_random(rand,ctx);
     }
 
-     public  fun check_maximum_bet_amount(bet_amount:u64,fee_percent:u8,value_count:u64,core:&Core){
+    public  fun check_maximum_bet_amount(bet_amount:u64,fee_percent:u8,value_count:u64,core:&Core){
         
         let fee_amount = calculate_percent_amount(bet_amount,fee_percent);
         

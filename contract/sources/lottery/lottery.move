@@ -70,7 +70,7 @@ module suino::lottery{
                 ((random::get_random_number(random,ctx) % 10) as u8)
             };
             vector::push_back(&mut jackpot_number,number);
-            random::game_after_set_random(random,ctx);
+            random::game_set_random(random,ctx);
         };       
         lottery.latest_jackpot_number = jackpot_number;
         let exsists_jackpot = map::contains(&lottery.tickets,&jackpot_number);
@@ -143,6 +143,9 @@ module suino::lottery{
     }
     public fun get_prize(lottery:&Lottery):u64{
         lottery.prize
+    }
+    public fun get_jackpot(lottery:&Lottery):vector<u8>{
+        lottery.latest_jackpot_number
     }
 
     #[test_only]

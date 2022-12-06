@@ -68,19 +68,19 @@ module suino::flip{
         bet_value:vector<u64>, 
         ctx:&mut TxContext)
     {
-        assert!(sender(ctx) != random::get_last_maker(random),0);
+        // assert!(sender(ctx) != random::get_last_maker(random),0);
         assert!(coin::value(coin) >= bet_amount,EInvalidAmount);
         assert!(bet_amount >= flip.minimum_bet,EInvalidAmount);
         assert!(vector::length(&bet_value) > 0 && vector::length(&bet_value) < 4,EInvalidValue);
         check_maximum_bet_amount(bet_amount,core::get_gaming_fee_percent(core),vector::length(&bet_value),core);
-
+        
     
         
          let coin_balance = coin::balance_mut(coin);
 
          let bet = balance::split(coin_balance, bet_amount);
 
-         //only calculate
+         //only use calculate
          let bet_amt = balance::value(&bet); 
 
 
@@ -96,7 +96,8 @@ module suino::flip{
       
 
         let (jackpot_amount,jackpot_value) = calculate_jackpot(random,bet_value,bet_amt,ctx);
-        //lottery prize up!
+        
+        //after game random
         set_random(random,ctx);
         
         if (jackpot_amount == 0){

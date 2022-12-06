@@ -1,6 +1,7 @@
 #[test_only]
 module suino::random_test{
     use sui::test_scenario::{Self as test,next_tx,ctx};
+    use sui::ecdsa;
     use suino::random::{Self,Random};
     use suino::utils;
     use suino::core::{Self,Ownership};
@@ -24,11 +25,12 @@ module suino::random_test{
         next_tx(scenario,owner);
         {
         let random = test::take_shared<Random>(scenario);
-        let init_value = b"casino";
-        let init_hash = utils::keccak256(init_value);
-        
+        let owner_hash = b"casino";
+        let user_hash = ecdsa::keccak256(&b"suino");
+        let compare_hash = utils::vector_combine(owner_hash,user_hash);
+
         let random_hash = random::get_hash(&random);
-        assert!(init_hash == random_hash,0);
+        assert!(compare_hash == random_hash,0);
         test::return_shared(random);
         };
 
@@ -38,7 +40,7 @@ module suino::random_test{
           let random = test::take_shared<Random>(scenario);
           let now_random_hash = random::get_hash(&random);
           let ownership = test::take_from_sender<Ownership>(scenario);
-          random::set_random(&mut random,b"casino",ctx(scenario));
+          random::set_salt(&ownership,&mut random,b"hello");
           assert!(now_random_hash != random::get_hash(&random),0);
           test::return_shared(random);
           test::return_to_sender(scenario,ownership);
@@ -48,7 +50,7 @@ module suino::random_test{
         {
             let random = test::take_shared<Random>(scenario);
             let now_random_hash = random::get_hash(&random);
-            random::game_after_set_random(&mut random,ctx(scenario));
+            random::game_set_random(&mut random,ctx(scenario));
             assert!(now_random_hash != random::get_hash(&random),0);
             test::return_shared(random);
         };

@@ -35,8 +35,8 @@ module suino::test_flip{
         //==============Win==============================
         next_tx(scenario,user);
         {   
-            //!! vector[1,0,0] = only test win from test case 
-            test_game(scenario,10000,vector[1,0,0]);
+            //!! vector[1,0,1] = only test win from test case 
+            test_game(scenario,10000,vector[1,0,1]);
         };
         
        //jackpot coin check
