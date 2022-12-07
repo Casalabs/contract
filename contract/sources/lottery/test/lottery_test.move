@@ -6,7 +6,6 @@ module suino::test_lottery{
     use suino::lottery::{Self,Lottery};
     use suino::player::{Self,Player};
     use suino::core::{Self,Core,Ownership};
-    use suino::random::{Self,Random};
     
     use suino::test_utils::{balance_check};
     #[test]
@@ -192,21 +191,21 @@ module suino::test_lottery{
     fun jackpot(scenario:&mut Scenario){
         use std::debug;
         let lottery = test::take_shared<Lottery>(scenario);
-        let random = test::take_shared<Random>(scenario);
+        // let random = test::take_shared<Random>(scenario);
         let ownership = test::take_from_sender<Ownership>(scenario);
-        let pool = test::take_shared<Core>(scenario);
+        let core = test::take_shared<Core>(scenario);
 
-        lottery::jackpot(&ownership,&mut random,&mut pool,&mut lottery,ctx(scenario));
+        lottery::jackpot(&ownership,&mut core,&mut lottery,ctx(scenario));
         debug::print(&lottery::get_jackpot(&lottery));
         test::return_to_sender(scenario,ownership);
         test::return_shared(lottery);
-        test::return_shared(random);
-        test::return_shared(pool);  
+        // test::return_shared(random);
+        test::return_shared(core);  
     }
 
     fun init_(scenario:&mut Scenario){
         lottery::test_lottery(10000,ctx(scenario));
         core::test_core(5,100000,1000,ctx(scenario));
-        random::test_random(b"casino",ctx(scenario));
+        // random::test_random(b"casino",ctx(scenario));
     }
 }

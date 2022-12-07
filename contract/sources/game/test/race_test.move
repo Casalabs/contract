@@ -5,7 +5,6 @@ module suino::race_test{
     use sui::coin::{Coin};
     use suino::race::{Self,Race};
     use suino::core::{Self,Core,Ownership};
-    use suino::random::{Self,Random};
     use suino::player::{
         Player,
         test_only_player,
@@ -259,19 +258,17 @@ module suino::race_test{
     fun init_for_testing(scenario:&mut Scenario){
         race::init_for_testing(ctx(scenario));
         core::test_core(5,1_000_000,0,ctx(scenario));
-        random::test_init(ctx(scenario));
     }
 
     fun bet(scenario:&mut Scenario,bet_value:u64){
         let race = test::take_shared<Race>(scenario);
         let core = test::take_shared<Core>(scenario);
-        let random = test::take_shared<Random>(scenario);
+        
         let coin = test::take_from_sender<Coin<SUI>>(scenario);
         let player = test::take_from_sender<Player>(scenario);
-        race::bet(&mut race,&mut core,&mut random,&mut player,&mut coin,bet_value,ctx(scenario));
+        race::bet(&mut race,&mut core,&mut player,&mut coin,bet_value,ctx(scenario));
         test::return_to_sender(scenario,player);
         test::return_to_sender(scenario,coin);
-        test::return_shared(random);
         test::return_shared(race);
         test::return_shared(core);
     }
@@ -281,12 +278,10 @@ module suino::race_test{
     fun jackpot(scenario:&mut Scenario){
         let race = test::take_shared<Race>(scenario);
         let core = test::take_shared<Core>(scenario);
-        let random = test::take_shared<Random>(scenario);
         let ownership = test::take_from_sender<Ownership>(scenario);
         
-        race::jackpot(&ownership,&mut race,&mut core,&mut random,ctx(scenario));
+        race::jackpot(&ownership,&mut race,&mut core,ctx(scenario));
         test::return_to_sender(scenario,ownership);
-        test::return_shared(random);
         test::return_shared(race);
         test::return_shared(core);
     }

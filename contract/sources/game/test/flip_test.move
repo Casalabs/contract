@@ -7,7 +7,6 @@ module suino::test_flip{
     use sui::sui::SUI;
     use suino::lottery::{Self,Lottery};
     use suino::core::{Self,Core};
-    use suino::random::{Self,Random};
     use suino::player::{Self,Player};
     use suino::flip::{Self,Flip};
     use suino::test_utils::{balance_check,coin_mint};
@@ -52,7 +51,6 @@ module suino::test_flip{
             let (
                 lottery,
                 core,
-                random,
                 flip
             )
             = require_shared(scenario);
@@ -96,7 +94,7 @@ module suino::test_flip{
             //-----------------------------------------
             assert!(lottery::get_prize(&lottery) == 0,0);
             
-            return_to_sender(lottery,core,random,flip);
+            return_to_sender(lottery,core,flip);
         };
         
 
@@ -120,7 +118,6 @@ module suino::test_flip{
             let (
                 lottery,
                 core,
-                random,
                 flip
             )
             = require_shared(scenario);
@@ -163,7 +160,7 @@ module suino::test_flip{
             
             assert!(lottery::get_prize(&lottery) == 1_900,0);
             
-            return_to_sender(lottery,core,random,flip);
+            return_to_sender(lottery,core,flip);
         };
 
         test::end(scenario_val);
@@ -302,7 +299,6 @@ module suino::test_flip{
     fun test_init(scenario:&mut Scenario){
             lottery::test_lottery(0,ctx(scenario));
             core::test_core(5,1000000,0,ctx(scenario));
-            random::test_random(b"casino",ctx(scenario));
             flip::init_for_testing(ctx(scenario));
     }
     fun test_user_init(scenario:&mut Scenario,addr:address,amount:u64){
@@ -321,7 +317,6 @@ module suino::test_flip{
           let (
                 lottery,
                 core,
-                random,
                 flip
             )
             = require_shared(scenario);
@@ -333,7 +328,6 @@ module suino::test_flip{
                 &flip,
                 &mut player,
                 &mut core,
-                &mut random,
                 &mut lottery,
                 test_coin,
                 amount,
@@ -342,26 +336,23 @@ module suino::test_flip{
             );
             
             test::return_to_sender(scenario,player);
-            return_to_sender(lottery,core,random,flip);
+            return_to_sender(lottery,core,flip);
     }
    
 
 
-    fun require_shared(test:&mut Scenario):(Lottery,Core,Random,Flip){
+    fun require_shared(test:&mut Scenario):(Lottery,Core,Flip){
         let lottery = test::take_shared<Lottery>(test);
         let core = test::take_shared<Core>(test);
-        let random = test::take_shared<Random>(test);
         let flip = test::take_shared<Flip>(test);
-        (lottery,core,random,flip)
+        (lottery,core,flip)
     }
     fun return_to_sender(
         lottery:Lottery,
         core:Core,
-        random:Random,
         flip:Flip){
             test::return_shared(lottery);
             test::return_shared(core);
-            test::return_shared(random);
             test::return_shared(flip);
     }
     

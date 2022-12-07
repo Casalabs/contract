@@ -16,7 +16,7 @@ module suino::lottery{
 
     use suino::player::{Self,Player};
     use suino::core::{Self,Core,Ownership};
-    use suino::random::{Self,Random};
+    
     #[test_only]
     friend suino::test_lottery;
 
@@ -58,19 +58,17 @@ module suino::lottery{
 
     public(friend) entry fun jackpot(
         _:&Ownership,
-        random:&mut Random,
-        pool:&mut Core,
+        core:&mut Core,
         lottery:&mut Lottery,
         ctx:&mut TxContext){
-
-       
         let jackpot_number = vector::empty<u8>();
         while(vector::length(&jackpot_number) < 6){
             let number = {
-                ((random::get_random_number(random,ctx) % 10) as u8)
+                ((core::get_random_number(core,ctx) % 10) as u8)
             };
             vector::push_back(&mut jackpot_number,number);
-            random::game_set_random(random,ctx);
+            // random::game_set_random(random,ctx);
+            core::game_set_random(core,ctx);
         };       
         lottery.latest_jackpot_number = jackpot_number;
         let exsists_jackpot = map::contains(&lottery.tickets,&jackpot_number);
@@ -95,7 +93,7 @@ module suino::lottery{
        
         while(!vector::is_empty(jackpot_members)){
             let jackpot_member = vector::pop_back(jackpot_members);
-            let balance = core::remove_pool(pool,jackpot_amount);
+            let balance = core::remove_pool(core,jackpot_amount);
             transfer::transfer(coin::from_balance<SUI>(balance,ctx),jackpot_member);
         };
        

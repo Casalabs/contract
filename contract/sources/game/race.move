@@ -10,7 +10,6 @@ module suino::race{
     use sui::tx_context::{TxContext,sender};
     use sui::event;
     use suino::core::{Self,Core,Ownership};
-    use suino::random::{Self,Random};
     use suino::player::{Self,Player};
     use suino::game_utils::{
         fee_deduct,
@@ -65,7 +64,6 @@ module suino::race{
     public entry fun bet(
         race:&mut Race,
         core:&mut Core,
-        random:&mut Random,
         player:&mut Player,
         coin:&mut Coin<SUI>,
         bet_value:u64,
@@ -80,17 +78,17 @@ module suino::race{
         add_balance(race,bet);
         set_participants(race,ctx);
         set_bet_state(race,bet_value,ctx);
-        set_random(random,ctx);
+        set_random(core,ctx);
     }
 
 
 
 
-    public entry fun jackpot(_:&Ownership,race:&mut Race,core:&mut Core,random:&mut Random,ctx:&mut TxContext){
+    public entry fun jackpot(_:&Ownership,race:&mut Race,core:&mut Core,ctx:&mut TxContext){
 
-        set_random(random,ctx);
+        set_random(core,ctx);
         let jackpot_value = {
-            random::get_random_number(random,ctx) % 10
+            core::get_random_number(core,ctx) % 10
         };
 
 

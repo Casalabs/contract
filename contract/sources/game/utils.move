@@ -5,7 +5,6 @@ module suino::game_utils{
     use sui::tx_context::{TxContext};
     use suino::core::{Self,Core};
     use suino::lottery::{Self,Lottery};
-    use suino::random::{Self,Random};
     use suino::utils::{
         calculate_percent_amount
     };
@@ -29,8 +28,8 @@ module suino::game_utils{
 
 
 
-    public fun set_random(rand:&mut Random,ctx:&mut TxContext){
-         random::game_set_random(rand,ctx);
+    public fun set_random(core:&mut Core,ctx:&mut TxContext){
+         core::game_set_random(core,ctx);
     }
 
     public  fun check_maximum_bet_amount(bet_amount:u64,fee_percent:u8,value_count:u64,core:&Core){

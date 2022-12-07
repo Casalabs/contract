@@ -9,8 +9,6 @@ module suino::flip{
     use sui::balance::{Self};
     use sui::sui::SUI;
     use sui::event;
-
-    use suino::random::{Self,Random};
     use suino::core::{Self,Core,Ownership};
     use suino::player::{Self,Player};
     use suino::lottery::{Lottery};
@@ -61,7 +59,6 @@ module suino::flip{
         flip:&Flip,
         player:&mut Player,
         core:&mut Core,
-        random:&mut Random,
         lottery:&mut Lottery,
         coin:&mut Coin<SUI>,
         bet_amount:u64,
@@ -95,10 +92,10 @@ module suino::flip{
         player::count_up(player);
       
 
-        let (jackpot_amount,jackpot_value) = calculate_jackpot(random,bet_value,bet_amt,ctx);
+        let (jackpot_amount,jackpot_value) = calculate_jackpot(core,bet_value,bet_amt,ctx);
         
         //after game random
-        set_random(random,ctx);
+        set_random(core,ctx);
         
         if (jackpot_amount == 0){
             lose_game_lottery_update(core,lottery,bet_amt);
@@ -127,7 +124,7 @@ module suino::flip{
     }
        
 
-    fun calculate_jackpot(random:&mut Random,bet_value:vector<u64>,bet_amount:u64,ctx:&mut TxContext):(u64,vector<u64>){
+    fun calculate_jackpot(core:&mut Core,bet_value:vector<u64>,bet_amount:u64,ctx:&mut TxContext):(u64,vector<u64>){
         
         //reverse because vector only pop_back [0,0,1] -> [1,0,0]
         vector::reverse(&mut bet_value);
@@ -138,14 +135,14 @@ module suino::flip{
         while(!vector::is_empty<u64>(&bet_value)) {
             let compare_number = vector::pop_back(&mut bet_value);
             assert!(compare_number == 0 || compare_number == 1,EInvalidValue);
-            let jackpot_number = random::get_random_number(random,ctx) % 2;
+            let jackpot_number = core::get_random_number(core,ctx) % 2;
             vector::push_back(&mut jackpot_value,jackpot_number);
             if (jackpot_number != compare_number){
                     jackpot_amount = 0;
                     break
             };
             jackpot_amount = jackpot_amount * 2;
-            set_random(random,ctx);
+            set_random(core,ctx);
         };
        
         (jackpot_amount,jackpot_value)

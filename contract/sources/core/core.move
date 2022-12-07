@@ -9,7 +9,7 @@ module suino::core{
     use sui::tx_context::{TxContext,sender};
     use sui::vec_map as map;
     use suino::nft::{Self,NFTState};
-    
+    use suino::random::{Self,Random};
 
     #[test_only]
     friend suino::core_test;
@@ -32,7 +32,7 @@ module suino::core{
         owners:u64,
         sign:VecSet<address>,
         lock:bool,
-        
+        random:Random,
     }
 
     struct Ownership has key{
@@ -54,6 +54,7 @@ module suino::core{
             owners:1,
             sign:set::empty(),
             lock:true,
+            random:random::create()
         };
         let ownership = Ownership{
             id:object::new(ctx)
@@ -123,9 +124,7 @@ module suino::core{
         core.lottery_percent = percent;
     }
 
-    //  public(friend) entry fun set_minimum_bet(_:&Ownership,core:&mut Core,amount:u64){
-    //     core.minimum_bet = amount;
-    // }
+    
 
 
 
@@ -198,9 +197,18 @@ module suino::core{
     public fun get_lottery_percent(core:&Core):u8{
         core.lottery_percent
     }
-    //  public fun get_minimum_bet(core:&Core):u64{
-    //     core.minimum_bet
-    // }
+
+
+  //=============random=====================
+    public fun get_random_number(core:&Core,ctx:&mut TxContext):u64{
+        random::get_random_number(&core.random,ctx)
+    }
+
+    public fun game_set_random(core:&mut Core,ctx:&mut TxContext){
+        random::game_set_random(&mut core.random,ctx)
+    }
+
+
 
    
 
@@ -218,6 +226,7 @@ module suino::core{
             owners:1,
             sign:set::empty(),
             lock:true,
+            random:random::create()
         };
         let ownership = Ownership{
             id:object::new(ctx)
@@ -244,6 +253,7 @@ module suino::core{
             owners:1,
             sign:set::empty(),
             lock:true,
+            random:random::create()
         };
         let ownership = Ownership{
             id:object::new(ctx)
