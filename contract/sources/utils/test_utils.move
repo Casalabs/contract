@@ -20,8 +20,9 @@ module suino::test_utils{
         test::return_to_sender(scenario,coin);
     }
     public fun balance_print(scenario:&mut Scenario){
+        use std::debug;
         let coin = test::take_from_sender<Coin<SUI>>(scenario);
-        
+        debug::print(&coin::value(&coin));
         test::return_to_sender(scenario,coin);
     }
     public fun core_pool_check(scenario:&mut Scenario,amount:u64){

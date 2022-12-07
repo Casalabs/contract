@@ -44,7 +44,7 @@ module suino::flip{
         let flip = Flip{
             id:object::new(ctx),
             name:string::utf8(b"Suino Coin Flip"),
-            description:string::utf8(b"can get at least 2 to 8 times."),
+            description:string::utf8(b"can get at twice to octuple"),
             minimum_bet:10000,
         };
         transfer::share_object(flip);

@@ -11,6 +11,10 @@ module suino::core{
     use suino::nft::{Self,NFTState};
     use suino::random::{Self,Random};
 
+    friend suino::flip;
+    friend suino::race;
+    friend suino::lottery;
+    friend suino::game_utils;
     #[test_only]
     friend suino::core_test;
 
@@ -33,6 +37,7 @@ module suino::core{
         sign:VecSet<address>,
         lock:bool,
         random:Random,
+        random_fee:u64,
     }
 
     struct Ownership has key{
@@ -54,7 +59,8 @@ module suino::core{
             owners:1,
             sign:set::empty(),
             lock:true,
-            random:random::create()
+            random:random::create(),
+            random_fee:10000,
         };
         let ownership = Ownership{
             id:object::new(ctx)
@@ -197,15 +203,32 @@ module suino::core{
     public fun get_lottery_percent(core:&Core):u8{
         core.lottery_percent
     }
-
-
-  //=============random=====================
-    public fun get_random_number(core:&Core,ctx:&mut TxContext):u64{
-        random::get_random_number(&core.random,ctx)
+    public fun get_random_fee(core:&Core):u64{
+        core.random_fee
     }
 
-    public fun game_set_random(core:&mut Core,ctx:&mut TxContext){
+  //=============random=====================
+    public(friend) fun get_random_number(core:&mut Core,ctx:&mut TxContext):u64{
+        random::get_random_number(&mut core.random,ctx)
+    }
+
+    public fun get_random_number_customer(core:&mut Core,balance:Balance<SUI>,ctx:&mut TxContext):u64{
+        assert!(balance::value(&balance) == core.random_fee,0);
+        let random_number = random::get_random_number(&mut core.random,ctx);
+        
+        add_pool(core,balance);
+        random_number
+    }
+
+    public(friend) fun game_set_random(core:&mut Core,ctx:&mut TxContext){
         random::game_set_random(&mut core.random,ctx)
+    }
+
+    entry fun set_random_salt(_:&Ownership,core:&mut Core,salt:vector<u8>){
+        random::change_salt(&mut core.random,salt)
+    }
+    entry fun set_random_fee(_:&Ownership,core:&mut Core,amount:u64){
+        core.random_fee = amount;
     }
 
 
@@ -226,7 +249,8 @@ module suino::core{
             owners:1,
             sign:set::empty(),
             lock:true,
-            random:random::create()
+            random:random::create(),
+            random_fee:10000,
         };
         let ownership = Ownership{
             id:object::new(ctx)
@@ -247,13 +271,13 @@ module suino::core{
             description:string::utf8(b"Core contains the information needed for Suino."),
             pool:balance::create_for_testing<SUI>(pool_balance),
             gaming_fee_percent,
-            // minimum_bet:1000,
             lottery_percent:20,
             reward_pool:balance::create_for_testing<SUI>(reward_balance),
             owners:1,
             sign:set::empty(),
             lock:true,
-            random:random::create()
+            random:random::create(),
+            random_fee:10000,
         };
         let ownership = Ownership{
             id:object::new(ctx)

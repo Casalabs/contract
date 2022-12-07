@@ -68,7 +68,7 @@ module suino::lottery{
             };
             vector::push_back(&mut jackpot_number,number);
             // random::game_set_random(random,ctx);
-            core::game_set_random(core,ctx);
+          
         };       
         lottery.latest_jackpot_number = jackpot_number;
         let exsists_jackpot = map::contains(&lottery.tickets,&jackpot_number);
