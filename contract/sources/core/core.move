@@ -56,7 +56,7 @@ module suino::core{
             pool:balance::zero<SUI>(),
             gaming_fee_percent:5,
             reward_pool:balance::zero<SUI>(),
-            lottery_percent:20,
+            lottery_percent:10,
             lottery_amount:0,
             owners:1,
             sign:set::empty(),
@@ -89,8 +89,8 @@ module suino::core{
 
     public(friend) entry fun withdraw(_:&Ownership,core:&mut Core,amount:u64,ctx:&mut TxContext){
         //lock check
-        assert!((get_pool_balance(core) - amount) > core.lottery_amount,EWithdrawBig);
         check_lock(core);
+        assert!((get_pool_balance(core) - amount) >= core.lottery_amount,EWithdrawBig);
 
         let balance = remove_pool(core,amount);
        
