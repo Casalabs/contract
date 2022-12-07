@@ -32,7 +32,7 @@ module suino::game_utils{
          core::game_set_random(core,ctx);
     }
 
-    public  fun check_maximum_bet_amount(bet_amount:u64,fee_percent:u8,value_count:u64,core:&Core){
+    public  fun check_maximum_bet_amount(bet_amount:u64,fee_percent:u8,value_count:u64,core:&Core):u64{
         
         let fee_amount = calculate_percent_amount(bet_amount,fee_percent);
         
@@ -49,6 +49,7 @@ module suino::game_utils{
         let compare_percent = (bet_amount * 100) / core::get_pool_balance(core) ;
         // compare_percent
         assert!(compare_percent <= 10,EMaximumBet);
+        bet_amount
     }
   
 

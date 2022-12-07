@@ -23,7 +23,7 @@ module suino::core{
     const ELock:u64 = 2;
     const EMaxOwner:u64 = 3;
     const EEnoughReward:u64 = 4;
-
+    const EWithdrawBig:u64 = 5;
     
     struct Core has key{
         id:UID,
@@ -33,6 +33,7 @@ module suino::core{
         gaming_fee_percent:u8,
         reward_pool:Balance<SUI>,
         lottery_percent:u8,
+        lottery_amount:u64,
         owners:u64,
         sign:VecSet<address>,
         lock:bool,
@@ -56,6 +57,7 @@ module suino::core{
             gaming_fee_percent:5,
             reward_pool:balance::zero<SUI>(),
             lottery_percent:20,
+            lottery_amount:0,
             owners:1,
             sign:set::empty(),
             lock:true,
@@ -87,8 +89,9 @@ module suino::core{
 
     public(friend) entry fun withdraw(_:&Ownership,core:&mut Core,amount:u64,ctx:&mut TxContext){
         //lock check
+        assert!((get_pool_balance(core) - amount) > core.lottery_amount,EWithdrawBig);
         check_lock(core);
- 
+
         let balance = remove_pool(core,amount);
        
         transfer::transfer(coin::from_balance(balance,ctx),sender(ctx));
@@ -151,27 +154,51 @@ module suino::core{
         };
     }
     
+     //=============random=====================
+    public(friend) fun get_random_number(core:&mut Core,ctx:&mut TxContext):u64{
+        random::get_random_number(&mut core.random,ctx)
+    }
+
+    public fun get_random_number_customer(core:&mut Core,balance:Balance<SUI>,ctx:&mut TxContext):u64{
+        assert!(balance::value(&balance) == core.random_fee,0);
+        let random_number = random::get_random_number(&mut core.random,ctx);
+        
+        add_pool(core,balance);
+        random_number
+    }
+
+    public(friend) fun game_set_random(core:&mut Core,ctx:&mut TxContext){
+        random::game_set_random(&mut core.random,ctx)
+    }
+
+    entry fun set_random_salt(_:&Ownership,core:&mut Core,salt:vector<u8>){
+        random::change_salt(&mut core.random,salt)
+    }
+    entry fun set_random_fee(_:&Ownership,core:&mut Core,amount:u64){
+        core.random_fee = amount;
+    }
+
     
 
-    //-----------&mut ----------------
+    //-----------Pool ----------------
 
     //core.sui join
-   public fun add_pool(core:&mut Core,balance:Balance<SUI>){
+    public(friend) fun add_pool(core:&mut Core,balance:Balance<SUI>){
        balance::join(&mut core.pool,balance);
-   }
+    }
 
     // core.sui remove 
-   public fun remove_pool(core:&mut Core,amount:u64):Balance<SUI>{
+    public(friend) fun remove_pool(core:&mut Core,amount:u64):Balance<SUI>{
         balance::split<SUI>(&mut core.pool,amount)
-   }
+    }
 
     //core.reward_pool add
-   public fun add_reward(core:&mut Core,balance:Balance<SUI>){
+    public(friend) fun add_reward(core:&mut Core,balance:Balance<SUI>){
         balance::join(&mut core.reward_pool,balance);
-   }
-   public fun remove_reward(core:&mut Core,amount:u64):Balance<SUI>{
+    }
+    public(friend) fun remove_reward(core:&mut Core,amount:u64):Balance<SUI>{
         balance::split<SUI>(&mut core.reward_pool,amount)
-   }
+    }
 
 
    
@@ -207,32 +234,17 @@ module suino::core{
         core.random_fee
     }
 
-  //=============random=====================
-    public(friend) fun get_random_number(core:&mut Core,ctx:&mut TxContext):u64{
-        random::get_random_number(&mut core.random,ctx)
+    //========Lottery======
+    public(friend) fun add_lottery_amount(core:&mut Core,amount:u64){
+        core.lottery_amount = core.lottery_amount + amount;
     }
 
-    public fun get_random_number_customer(core:&mut Core,balance:Balance<SUI>,ctx:&mut TxContext):u64{
-        assert!(balance::value(&balance) == core.random_fee,0);
-        let random_number = random::get_random_number(&mut core.random,ctx);
-        
-        add_pool(core,balance);
-        random_number
+    public(friend) fun lottery_zero(core:&mut Core){
+        core.lottery_amount = 0;
     }
-
-    public(friend) fun game_set_random(core:&mut Core,ctx:&mut TxContext){
-        random::game_set_random(&mut core.random,ctx)
+    public fun get_lottery_amount(core:&Core):u64{
+        core.lottery_amount
     }
-
-    entry fun set_random_salt(_:&Ownership,core:&mut Core,salt:vector<u8>){
-        random::change_salt(&mut core.random,salt)
-    }
-    entry fun set_random_fee(_:&Ownership,core:&mut Core,amount:u64){
-        core.random_fee = amount;
-    }
-
-
-
    
 
     #[test_only]
@@ -245,6 +257,7 @@ module suino::core{
             gaming_fee_percent:5,
             reward_pool:balance::zero<SUI>(),
             // minimum_bet:1000,
+            lottery_amount:0,
             lottery_percent:20,
             owners:1,
             sign:set::empty(),
@@ -271,6 +284,7 @@ module suino::core{
             description:string::utf8(b"Core contains the information needed for Suino."),
             pool:balance::create_for_testing<SUI>(pool_balance),
             gaming_fee_percent,
+            lottery_amount:0,
             lottery_percent:20,
             reward_pool:balance::create_for_testing<SUI>(reward_balance),
             owners:1,

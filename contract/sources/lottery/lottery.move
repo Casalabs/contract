@@ -12,8 +12,7 @@ module suino::lottery{
     use sui::coin;
     use sui::event;
 
-
-
+    
     use suino::player::{Self,Player};
     use suino::core::{Self,Core,Ownership};
     
@@ -108,6 +107,7 @@ module suino::lottery{
         });
         lottery.prize = 0;
         lottery.round = lottery.round + 1;
+        core::lottery_zero(core)
     }
 
     //------------User-----------------

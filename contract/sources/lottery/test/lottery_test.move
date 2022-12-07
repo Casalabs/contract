@@ -68,8 +68,8 @@ module suino::test_lottery{
         {   
             let lottery = test::take_shared<Lottery>(scenario);
             let player = test::take_from_sender<Player>(scenario);
-            //vector[3,9,0,3,7,4] is only test
-            let numbers = vector[vector[3,9,0,3,7,4]];
+            //vector[1,8,5,2,9,6] is only test
+            let numbers = vector[vector[1,8,5,2,9,6]];
             
             lottery::buy_ticket(&mut lottery,&mut player,numbers,ctx(scenario));
             test::return_to_sender<Player>(scenario,player);
@@ -81,7 +81,7 @@ module suino::test_lottery{
         
             let lottery = test::take_shared<Lottery>(scenario);
             let player = test::take_from_sender<Player>(scenario);
-            let numbers = vector[vector[3,9,0,3,7,4]];
+            let numbers = vector[vector[1,8,5,2,9,6]];
             
             lottery::buy_ticket(&mut lottery,&mut player,numbers,ctx(scenario));
             

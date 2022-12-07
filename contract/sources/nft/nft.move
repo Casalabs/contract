@@ -266,13 +266,16 @@ module suino::nft{
     }
 
        
-    public fun set_state_nft_holder(state:&mut NFTState,nft_id:ID,recipent:address){
+    public(friend) fun set_state_nft_holder(state:&mut NFTState,nft_id:ID,recipent:address){
         vec_map::remove<ID,address>(&mut state.holder,&nft_id);
         vec_map::insert<ID,address>(&mut state.holder,nft_id,recipent);
     }
+
+    
     public fun get_owner(state:&NFTState):address{
         state.owner
     }
+
     public fun get_holder(state:&NFTState,id:&ID):address{
         let holder_point = vec_map::get(&state.holder,id);
         *holder_point

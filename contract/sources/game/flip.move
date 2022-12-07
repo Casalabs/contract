@@ -21,7 +21,7 @@ module suino::flip{
 
     const EInvalidAmount:u64 = 0;
     const EInvalidValue:u64 = 1;
-    
+    const ETooMuchBet:u64 = 2;
     
     struct Flip has key{
         id:UID,
@@ -69,7 +69,8 @@ module suino::flip{
         assert!(coin::value(coin) >= bet_amount,EInvalidAmount);
         assert!(bet_amount >= flip.minimum_bet,EInvalidAmount);
         assert!(vector::length(&bet_value) > 0 && vector::length(&bet_value) < 4,EInvalidValue);
-        check_maximum_bet_amount(bet_amount,core::get_gaming_fee_percent(core),vector::length(&bet_value),core);
+        let maximum_prize = check_maximum_bet_amount(bet_amount,core::get_gaming_fee_percent(core),vector::length(&bet_value),core);
+        assert!((core::get_pool_balance(core) - maximum_prize) > core::get_lottery_amount(core),ETooMuchBet);
         
     
         
