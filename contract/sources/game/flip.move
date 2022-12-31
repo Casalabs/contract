@@ -15,7 +15,6 @@ module suino::flip{
     use suino::game_utils::{
         lose_game_lottery_update,
         fee_deduct,
-        set_random,
         check_maximum_bet_amount,
     };
 
@@ -36,7 +35,8 @@ module suino::flip{
         bet_value:vector<u64>,
         jackpot_value:vector<u64>,
         jackpot_amount:u64,
-        jackpot_address:address,
+        gamer:address,
+        pool_balance:u64,
     }
     
     
@@ -57,22 +57,19 @@ module suino::flip{
   
     public entry fun bet(
         flip:&Flip,
-        player:&mut Player,
         core:&mut Core,
+        player:&mut Player,
         lottery:&mut Lottery,
         coin:&mut Coin<SUI>,
         bet_amount:u64,
         bet_value:vector<u64>, 
         ctx:&mut TxContext)
     {
-        // assert!(sender(ctx) != random::get_last_maker(random),0);
         assert!(coin::value(coin) >= bet_amount,EInvalidAmount);
         assert!(bet_amount >= flip.minimum_bet,EInvalidAmount);
-        assert!(vector::length(&bet_value) > 0 && vector::length(&bet_value) < 4,EInvalidValue);
+        assert!(vector::length(&bet_value) > 0 && vector::length(&bet_value) < 6,EInvalidValue);
         let maximum_prize = check_maximum_bet_amount(bet_amount,core::get_gaming_fee_percent(core),vector::length(&bet_value),core);
         assert!((core::get_pool_balance(core) - maximum_prize) > core::get_lottery_amount(core),ETooMuchBet);
-        
-    
         
          let coin_balance = coin::balance_mut(coin);
 
@@ -91,12 +88,13 @@ module suino::flip{
         
         //player object count_up
         player::count_up(player);
-      
+        //after game set
+       
 
         let (jackpot_amount,jackpot_value) = calculate_jackpot(core,bet_value,bet_amt,ctx);
-        
-        //after game random
-        set_random(core,ctx);
+
+        //game after set random
+        core::game_set_random(core,ctx);
         
         if (jackpot_amount == 0){
             lose_game_lottery_update(core,lottery,bet_amt);
@@ -106,13 +104,15 @@ module suino::flip{
                 bet_value,
                 jackpot_value,
                 jackpot_amount:0,
-                jackpot_address:sender(ctx),
+                gamer:sender(ctx),
+                pool_balance:core::get_pool_balance(core),
+           
             });
             return
         };
            
         let jackpot = core::remove_pool(core,jackpot_amount); //balance<SUI>
-        
+       
         balance::join(coin_balance,jackpot);
         event::emit(JackpotEvent{
             is_jackpot:true,
@@ -120,7 +120,8 @@ module suino::flip{
             bet_value,
             jackpot_value,
             jackpot_amount,
-            jackpot_address:sender(ctx),
+            gamer:sender(ctx),
+            pool_balance:core::get_pool_balance(core)
         })
     }
        
@@ -143,7 +144,6 @@ module suino::flip{
                     break
             };
             jackpot_amount = jackpot_amount * 2;
-            set_random(core,ctx);
         };
        
         (jackpot_amount,jackpot_value)

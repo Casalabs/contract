@@ -1,7 +1,7 @@
 #[test_only]
 module suino::random_test{
     // use sui::test_scenario::{Self as test,next_tx,ctx};
-    use sui::ecdsa;
+    use sui::ecdsa_k1;
     use suino::random::{Self};
     use suino::utils;
     // use suino::core::{Self,Ownership};
@@ -60,7 +60,7 @@ module suino::random_test{
     fun test_random(){
         let random = random::create();       
         let owner_hash = b"casino";
-        let user_hash = ecdsa::keccak256(&b"suino");
+        let user_hash = ecdsa_k1::keccak256(&b"suino");
         let compare_hash = utils::vector_combine(owner_hash,user_hash);
 
         let random_hash = random::get_hash(&random);

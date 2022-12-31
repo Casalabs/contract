@@ -43,12 +43,13 @@ module suino::core{
 
     struct Ownership has key{
         id:UID,
+        name:String,
+        
     }
 
     // -----init-------
     fun init(ctx:&mut TxContext){
-        
-        
+
         let core = Core{
             id:object::new(ctx),
             name:string::utf8(b"Sunio Core"),
@@ -64,24 +65,22 @@ module suino::core{
             random:random::create(),
             random_fee:10000,
         };
+
         let ownership = Ownership{
-            id:object::new(ctx)
+            id:object::new(ctx),
+            name:string::utf8(b"Suino Core Ownership")
         };
+
         transfer::transfer(ownership,sender(ctx));
         transfer::share_object(core)
     }
 
 
-    
     fun check_lock(core:&Core){
         assert!(core.lock == false,ELock)
     }
 
-
-
     //----------Entry--------------
-    
-
     public(friend) entry fun deposit(_:&Ownership,core:&mut Core,token:Coin<SUI>){
         let balance = coin::into_balance(token);
         add_pool(core,balance);
@@ -101,17 +100,15 @@ module suino::core{
     public(friend) entry fun add_owner(_:&Ownership,core:&mut Core,new_owner:address,ctx:&mut TxContext){
         //owners size have limit 4
         assert!(core.owners < 4,EMaxOwner);
-
         let ownership = Ownership{
-            id:object::new(ctx)
+            id:object::new(ctx),
+            name:string::utf8(b"Suino Core Ownership")
         };
         transfer::transfer(ownership,new_owner);
         core.owners = core.owners + 1;
-        
     }
 
     public(friend) entry fun sign(_:&Ownership,core:&mut Core,ctx:&mut TxContext){
-        
         let sign = &mut core.sign;
         set::insert(sign,sender(ctx));
         if (core.owners / set::size(&core.sign) == 1){
@@ -132,10 +129,6 @@ module suino::core{
     public(friend) entry fun set_lottery_percent(_:&Ownership,core:&mut Core,percent:u8){
         core.lottery_percent = percent;
     }
-
-    
-
-
 
     public(friend) entry fun reward_share(_:&Ownership,core:&mut Core,nft:&NFTState,ctx:&mut TxContext){
         
@@ -256,7 +249,6 @@ module suino::core{
             pool:balance::zero<SUI>(),
             gaming_fee_percent:5,
             reward_pool:balance::zero<SUI>(),
-            // minimum_bet:1000,
             lottery_amount:0,
             lottery_percent:20,
             owners:1,
@@ -266,7 +258,8 @@ module suino::core{
             random_fee:10000,
         };
         let ownership = Ownership{
-            id:object::new(ctx)
+            id:object::new(ctx),
+            name:string::utf8(b"Suino Core Ownership")
         };
         transfer::transfer(ownership,sender(ctx));
         transfer::share_object(core)
@@ -294,7 +287,8 @@ module suino::core{
             random_fee:10000,
         };
         let ownership = Ownership{
-            id:object::new(ctx)
+            id:object::new(ctx),
+            name:string::utf8(b"Suino Core Ownership")
         };
         transfer::share_object(core);
         transfer::transfer(ownership,sender(ctx));

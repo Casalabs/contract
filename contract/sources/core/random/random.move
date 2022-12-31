@@ -3,7 +3,7 @@ module suino::random{
     use sui::object::{Self};
     use sui::tx_context::{Self,TxContext};
     
-    use sui::ecdsa;
+    use sui::ecdsa_k1;
     use suino::utils;
     // use suino::core::{Ownership};
     
@@ -35,7 +35,7 @@ module suino::random{
 
     public(friend) fun create():Random{
         let salt = b"casino";
-        let hash = ecdsa::keccak256(&b"suino");
+        let hash = ecdsa_k1::keccak256(&b"suino");
         let random = Random{
             salt,
             hash,
@@ -56,12 +56,7 @@ module suino::random{
     }
 
 
-    fun object_hash(ctx:&mut TxContext):vector<u8>{
-        let new_object = object::new(ctx);
-        let object_hash = ecdsa::keccak256(&object::uid_to_bytes(&new_object));
-        object::delete(new_object);
-        object_hash
-    }
+  
 
 
     public(friend) fun get_random_number(random:&mut Random,ctx:&mut TxContext):u64{
@@ -69,6 +64,7 @@ module suino::random{
         let random_hash = utils::vector_combine(random.salt,random.hash);
         
         let random_number = utils::u64_from_vector(random_hash,epoch);
+        random_hash = utils::keccak256(random_hash);
         random.hash = random_hash;
         random_number
     }
@@ -77,18 +73,17 @@ module suino::random{
         utils::vector_combine(random.salt,random.hash)
     }
 
-    // public fun get_random_number_sell(random:&mut Random,ctx:&mut TxContext):u64{
-    //     let random_hash = get_hash(random);
-    //     let epoch = tx_context::epoch(ctx);
-    //     let new_hash = utils::vector_combine(random.salt,random.hash);
-    //     let random_number = utils::u64_from_vector(random_hash,epoch);
-    //     random.hash = new_hash;
-    //     random_number
-    // } 
+    fun object_hash(ctx:&mut TxContext):vector<u8>{
+        let new_object = object::new(ctx);
+        let object_hash = ecdsa_k1::keccak256(&object::uid_to_bytes(&new_object));
+        object::delete(new_object);
+        object_hash
+    }
+
 
     #[test_only]
     public fun test_random(salt:vector<u8>):Random{
-        let hash = ecdsa::keccak256(&b"suino");
+        let hash = ecdsa_k1::keccak256(&b"suino");
         let random = Random{
             salt,
             hash,
@@ -101,9 +96,5 @@ module suino::random{
     public fun destroy_random(random:Random){
         let Random{salt:_,hash:_}  = random;
     }    
-    
- 
-
-    
 }
 

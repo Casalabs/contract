@@ -15,23 +15,32 @@ module suino::race{
         fee_deduct,
         set_random,
     };
+
+    #[test_only]
+    friend suino::race_test;
+    
     struct Race has key{
         id:UID,
         name:String,
         description:String,
         round:u64,
-        participants:vector<address>,
+        join_member:vector<address>,
         bet_state:VecMap<u64,vector<address>>,
         balance:Balance<SUI>,
         minimum_bet:u64,
         minimum_prize:u64, //suino minimum betting amount * 10
     }
 
+    struct Betting has copy,drop{
+        gamer:address,
+        bet_value:u64,
+    }
     struct LoseJackpotEvent has copy,drop{
         round:u64,
         jackpot_value:u64,
         jackpot_amount:u64,
         jackpot_members:vector<address>,
+        pool_balance:u64,
     }
     struct WinJackpotEvent has copy,drop{
         round:u64,
@@ -39,6 +48,7 @@ module suino::race{
         total_jackpot_amount:u64,
         personal_jackpot_amount:u64,
         jackpot_members:vector<address>,
+        pool_balance:u64,
     }
 
     const EInvalidBetValue:u64 = 0;
@@ -50,7 +60,7 @@ module suino::race{
             name:string::utf8(b"Suino Race Game"),
             description:string::utf8(b"Ten pigs race. Predict who will win."),
             round:1,
-            participants:vector::empty<address>(),
+            join_member:vector::empty<address>(),
             bet_state:map::empty<u64,vector<address>>(),
             balance:balance::zero<SUI>(),
             minimum_bet:10000,
@@ -58,10 +68,9 @@ module suino::race{
         };
         transfer::share_object(race);
     }
-  
 
 
-    public entry fun bet(
+    public(friend) entry fun bet(
         race:&mut Race,
         core:&mut Core,
         player:&mut Player,
@@ -69,28 +78,31 @@ module suino::race{
         bet_value:u64,
         ctx:&mut TxContext)
     {
-        assert!(bet_value < 11,EInvalidBetValue);
+        assert!(bet_value < 10,EInvalidBetValue);
         assert!(coin::value(coin) >= race.minimum_bet,ENotEnoughBalance);
         let coin_balance = coin::balance_mut(coin);
         let bet = balance::split(coin_balance,race.minimum_bet);
         player::count_up(player);
         fee_deduct(core,&mut bet);
         add_balance(race,bet);
-        set_participants(race,ctx);
+        set_join_member(race,ctx);
         set_bet_state(race,bet_value,ctx);
         set_random(core,ctx);
+        event::emit(Betting{
+            gamer:sender(ctx),
+            bet_value,
+        })
     }
 
 
 
 
-    public entry fun jackpot(_:&Ownership,race:&mut Race,core:&mut Core,ctx:&mut TxContext){
+    public(friend) entry fun jackpot(_:&Ownership,core:&mut Core,race:&mut Race,ctx:&mut TxContext){
 
-        set_random(core,ctx);
+        // set_random(core,ctx);
         let jackpot_value = {
             core::get_random_number(core,ctx) % 10
         };
-
 
         if (get_balance(race) < race.minimum_prize){
             let supply_balance = race.minimum_prize - get_balance(race);
@@ -110,6 +122,7 @@ module suino::race{
                 jackpot_value,
                 jackpot_amount:0,
                 jackpot_members:vector::empty(),
+                pool_balance:core::get_pool_balance(core)
             });
             return
         };
@@ -137,6 +150,7 @@ module suino::race{
              total_jackpot_amount:balance::value(&balance),
              personal_jackpot_amount:jackpot_amt,
              jackpot_members,
+             pool_balance:core::get_pool_balance(core)
         });
         //only remaining balance treat
         core::add_pool(core,balance);
@@ -156,13 +170,13 @@ module suino::race{
         race.description = string;
     }
 
-    // public get_balance(race:&Race):
+  
     //===========mut==============
-    public fun add_balance(race:&mut Race,balance:Balance<SUI>){
+    fun add_balance(race:&mut Race,balance:Balance<SUI>){
         balance::join(&mut race.balance,balance);
     }
 
-    public fun remove_all_balance(race:&mut Race):Balance<SUI>{
+    fun remove_all_balance(race:&mut Race):Balance<SUI>{
         let race_amt = get_balance(race);
         balance::split<SUI>(&mut race.balance,race_amt)
     }
@@ -175,7 +189,7 @@ module suino::race{
 
     //===========logic======================
     //===========game====================
-    public fun set_bet_state(race:&mut Race,bet_value:u64,ctx:&mut TxContext){
+    fun set_bet_state(race:&mut Race,bet_value:u64,ctx:&mut TxContext){
         //if contains?
         if (!map::contains(&race.bet_state,&bet_value)){
             map::insert(&mut race.bet_state,bet_value,vector[sender(ctx)]);
@@ -185,16 +199,16 @@ module suino::race{
         vector::push_back(race_value,sender(ctx));
     }
     
-    public fun set_participants(race:&mut Race,ctx:&mut TxContext){
-        assert!(!vector::contains(&race.participants,&sender(ctx)),0 );
-        vector::push_back(&mut race.participants,sender(ctx));
+    fun set_join_member(race:&mut Race,ctx:&mut TxContext){
+        assert!(!vector::contains(&race.join_member,&sender(ctx)),0 );
+        vector::push_back(&mut race.join_member,sender(ctx));
     }
 
     
 
-    public fun set_init(race:&mut Race){
+    fun set_init(race:&mut Race){
         race.bet_state = map::empty<u64,vector<address>>();
-        race.participants = vector::empty<address>();
+        race.join_member = vector::empty<address>();
         race.round = race.round + 1;
     }
 
@@ -206,7 +220,7 @@ module suino::race{
             name:string::utf8(b"Suino Race Game"),
             description:string::utf8(b"Ten pigs race. Predict who will win."),
             round:1,
-            participants:vector::empty<address>(),
+            join_member:vector::empty<address>(),
             bet_state:map::empty<u64,vector<address>>(),
             balance:balance::zero<SUI>(),
             minimum_bet:10000,

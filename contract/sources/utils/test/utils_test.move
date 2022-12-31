@@ -6,7 +6,7 @@ module suino::utils_test{
         keccak256,
         u64_from_vector
         };
-    use sui::ecdsa;
+    use sui::ecdsa_k1;
     use sui::test_scenario::{Self as test,ctx};
     use sui::tx_context;
     
@@ -52,7 +52,7 @@ module suino::utils_test{
 
     #[test] fun keccak256_test(){
         let byte = b"hello";
-        let compare_hash =  ecdsa::keccak256(&byte);
+        let compare_hash =  ecdsa_k1::keccak256(&byte);
         let hash = keccak256(byte);
         assert!(hash ==compare_hash,0)
     }

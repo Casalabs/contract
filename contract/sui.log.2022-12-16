@@ -1,0 +1,21 @@
+2022-12-16T14:41:31.674543Z  WARN sui::client_commands: Client/Server api version mismatch, client api version : 0.18.0, server api version : 0.18.1
+2022-12-16T14:41:32.962846Z  INFO sui::client_commands: [1m----- Certificate ----[0m
+2022-12-16T14:41:32.962858Z  INFO sui::client_commands: Transaction Hash: WslknKQIhwwTa+4RUhQfYO660OgUOjJU4L6kfY5HRLk=
+2022-12-16T14:41:32.962860Z  INFO sui::client_commands: Transaction Signature: AA==@MA1YcjFIYG+0un9tr7VpqXL7+oBm495EAdGP88ZJ/kvMZkVbH3T3QODkrs+c+UEW6+QSAw3rmaN3SwQrxeW4Bw==@+lEsIC8dNAHzZu2eqvcLCpTg8eVCCnq/dde7u09dWok=
+2022-12-16T14:41:32.962862Z  INFO sui::client_commands: Signed Authorities Bitmap: RoaringBitmap<[0, 2, 3]>
+2022-12-16T14:41:32.962864Z  INFO sui::client_commands: Transaction Kind : Publish
+2022-12-16T14:41:32.962865Z  INFO sui::client_commands: [1m----- Transaction Effects ----[0m
+2022-12-16T14:41:32.962866Z  INFO sui::client_commands: Status : Success
+2022-12-16T14:41:32.962868Z  INFO sui::client_commands: Created Objects:
+2022-12-16T14:41:32.962869Z  INFO sui::client_commands:   - ID: 0x1aacb382418a2cc8e27ce2064ac5ddf85b723b8b , Owner: Shared
+2022-12-16T14:41:32.962871Z  INFO sui::client_commands:   - ID: 0x23968304eac9220bca4b1566139d033dd41b27a1 , Owner: Account Address ( 0xb1049625c741e8f89b3d141921d759f3c2acb0e9 )
+2022-12-16T14:41:32.962873Z  INFO sui::client_commands:   - ID: 0x342f691da02e477ad0ea3434b909b895e3cd19cd , Owner: Shared
+2022-12-16T14:41:32.962874Z  INFO sui::client_commands:   - ID: 0x562a1e595536002a6d22b38dcf3246fb0bf4fed6 , Owner: Shared
+2022-12-16T14:41:32.962875Z  INFO sui::client_commands:   - ID: 0x7d4b14c68a7ea1ac885c4b7c69eb019b399d566a , Owner: Shared
+2022-12-16T14:41:32.962877Z  INFO sui::client_commands:   - ID: 0x8391436389a857bfd1493294d1c106cbde3a6800 , Owner: Immutable
+2022-12-16T14:41:32.962878Z  INFO sui::client_commands:   - ID: 0x85091089eda177c85decb8155f77519f831e451e , Owner: Account Address ( 0xb1049625c741e8f89b3d141921d759f3c2acb0e9 )
+2022-12-16T14:41:32.963079Z  INFO sui::client_commands:   - ID: 0xb46e327ba89d81096c0e36ba3f7ec0df34d74487 , Owner: Shared
+2022-12-16T14:41:32.963248Z  INFO sui::client_commands:   - ID: 0xb917c1d363e52715a1320cd3119c329092c77eef , Owner: Shared
+2022-12-16T14:41:32.963254Z  INFO sui::client_commands:   - ID: 0xb9bb8e45677085acfdae71af31d492b05dc2d66f , Owner: Shared
+2022-12-16T14:41:32.963263Z  INFO sui::client_commands: Mutated Objects:
+2022-12-16T14:41:32.963266Z  INFO sui::client_commands:   - ID: 0xd8eb361841a25fc8b0daa85da083fce99ad731c3 , Owner: Account Address ( 0xb1049625c741e8f89b3d141921d759f3c2acb0e9 )

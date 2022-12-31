@@ -280,7 +280,7 @@ module suino::race_test{
         let core = test::take_shared<Core>(scenario);
         let ownership = test::take_from_sender<Ownership>(scenario);
         
-        race::jackpot(&ownership,&mut race,&mut core,ctx(scenario));
+        race::jackpot(&ownership,&mut core,&mut race,ctx(scenario));
         test::return_to_sender(scenario,ownership);
         test::return_shared(race);
         test::return_shared(core);

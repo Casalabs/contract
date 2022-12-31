@@ -326,8 +326,8 @@ module suino::test_flip{
            
             flip::bet(
                 &flip,
-                &mut player,
                 &mut core,
+                &mut player,
                 &mut lottery,
                 test_coin,
                 amount,

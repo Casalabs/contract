@@ -46,6 +46,7 @@ module suino::nft{
 
     struct Ownership has key{
         id:UID,
+        name:String
     }
 
     struct MintNFTEvent has copy, drop {
@@ -93,6 +94,7 @@ module suino::nft{
          };
         let ownership = Ownership{
             id:object::new(ctx),
+            name:string::utf8(b"Suino NFT Ownership")
         };
         transfer::transfer(ownership,sender(ctx));
         transfer::share_object(marketplace);
@@ -128,12 +130,6 @@ module suino::nft{
         });
         transfer::transfer(nft, sender);
     }
-
-    // entry fun burn(
-    //     state:&mut SunioNFTState,
-    //     nft:NFT,
-        
-    // )
 
 
     entry fun claim_fee_membership(
@@ -325,6 +321,7 @@ module suino::nft{
          };
          let ownership = Ownership{
             id:object::new(ctx),
+            name:string::utf8(b"Suino NFT Ownership")
          };
         transfer::transfer(ownership,sender(ctx));
         transfer::share_object(marketplace);

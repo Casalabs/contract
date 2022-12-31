@@ -1,7 +1,7 @@
 module suino::utils{
 
 
-  use sui::ecdsa;
+  use sui::ecdsa_k1;
   use std::vector;
 
     public fun u64_from_vector(v:vector<u8>,epoch:u64):u64{
@@ -12,6 +12,7 @@ module suino::utils{
             };
             result = result + (vector::pop_back(&mut v) as u64);
         };
+    
         (result as u64)
     }
 
@@ -32,6 +33,7 @@ module suino::utils{
 
 
     public fun vector_combine(vector1:vector<u8>,vector2:vector<u8>):vector<u8>{
+        
         loop{
             if (vector::is_empty(&vector2)){
                 break
@@ -42,7 +44,7 @@ module suino::utils{
     }
  
     public fun keccak256(data:vector<u8>):vector<u8>{
-        ecdsa::keccak256(&data)
+        ecdsa_k1::keccak256(&data)
     }
    
 
