@@ -5,7 +5,7 @@ module suino::flip{
     use sui::object::{Self,UID};
     use sui::tx_context::{TxContext,sender};
     use sui::transfer;
-    use sui::coin::{Self,Coin};
+    use sui::coin::{Self,Coin,TreasuryCap};
     use sui::balance::{Self};
     use sui::sui::SUI;
     use sui::event;
@@ -19,7 +19,7 @@ module suino::flip{
         mint_coin,
     };
 
-    use suino::token::{Treasury,SLT};
+    use suino::slt::{SLT};
 
     const EInvalidAmount:u64 = 0;
     const EInvalidValue:u64 = 1;
@@ -63,7 +63,7 @@ module suino::flip{
     public entry fun bet(
         flip:&Flip,
         core:&mut Core,
-        cap:&mut Treasury<SLT>,
+        cap:&mut TreasuryCap<SLT>,
         lottery:&mut Lottery,
         coin:&mut Coin<SUI>,
         bet_amount:u64,

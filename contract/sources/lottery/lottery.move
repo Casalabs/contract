@@ -9,9 +9,9 @@ module suino::lottery{
     use sui::vec_map::{Self as map,VecMap};
     use sui::transfer;
     use sui::tx_context::{TxContext,sender};
-    use sui::coin::{Self,Coin};
+    use sui::coin::{Self,Coin,TreasuryCap};
     use sui::event;
-    use suino::token::{Self,SLT,Treasury};
+    use suino::slt::{Self,SLT};
     
     // use suino::player::{Self,Player};
     use suino::core::{Self,Core,Ownership};
@@ -115,7 +115,7 @@ module suino::lottery{
     //buy ticket
     public(friend) entry fun buy_ticket(
         lottery:&mut Lottery,
-        cap:&mut Treasury<SLT>,
+        cap:&mut TreasuryCap<SLT>,
         token:&mut Coin<SLT>,
         numbers:vector<vector<u8>>,
         ctx:&mut TxContext){
@@ -138,7 +138,7 @@ module suino::lottery{
                 map::insert(&mut lottery.tickets,number,vector::singleton(sender(ctx)));
             }
         };
-        token::burn_amount(cap,token,vector::length(&numbers),ctx);
+        slt::burn_amount(cap,token,vector::length(&numbers),ctx);
         
     }
 

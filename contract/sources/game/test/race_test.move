@@ -2,11 +2,11 @@
 module suino::race_test{
     use sui::test_scenario::{Self as test,next_tx,ctx,Scenario};
     use sui::sui::SUI;
-    use sui::coin::{Coin};
+    use sui::coin::{Coin,TreasuryCap};
     
     use suino::race::{Self,Race};
     use suino::core::{Self,Core,Ownership};
-    use suino::token::{Self,Treasury,SLT};
+    use suino::slt::{Self,SLT};
     // use suino::player::{
     //     Player,
     //     test_only_player,
@@ -269,13 +269,13 @@ module suino::race_test{
     fun init_for_testing(scenario:&mut Scenario){
         race::init_for_testing(ctx(scenario));
         core::test_core(5,1_000_000,0,ctx(scenario));
-        token::init_for_testing(ctx(scenario));
+        slt::init_for_testing(ctx(scenario));
     }
 
     fun bet(scenario:&mut Scenario,bet_value:u64){
         let race = test::take_shared<Race>(scenario);
         let core = test::take_shared<Core>(scenario);
-        let cap = test::take_shared<Treasury<SLT>>(scenario);
+        let cap = test::take_shared<TreasuryCap<SLT>>(scenario);
         let coin = test::take_from_sender<Coin<SUI>>(scenario);
         // let player = test::take_from_sender<Player>(scenario);
         race::bet(&mut race,&mut core,&mut cap,&mut coin,bet_value,ctx(scenario));

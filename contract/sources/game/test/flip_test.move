@@ -3,12 +3,12 @@ module suino::test_flip{
    
    
     use sui::test_scenario::{Self as test,next_tx,ctx,Scenario,};
-    use sui::coin::{Self,Coin};
+    use sui::coin::{Self,Coin,TreasuryCap};
     use sui::sui::SUI;
     use suino::lottery::{Self,Lottery};
     use suino::core::{Self,Core};
     use suino::flip::{Self,Flip};
-    use suino::token::{Self,Treasury,SLT};
+    use suino::slt::{Self,SLT};
     use suino::test_utils::{balance_check,coin_mint};
     
     #[test]
@@ -295,7 +295,8 @@ module suino::test_flip{
             lottery::test_lottery(0,ctx(scenario));
             core::test_core(5,100000000,0,ctx(scenario));
             flip::init_for_testing(ctx(scenario));
-            token::init_for_testing(ctx(scenario));
+            
+            slt::init_for_testing(ctx(scenario));
     }
     fun test_user_init(scenario:&mut Scenario,addr:address,amount:u64){
         // player::test_create(ctx(scenario),10);
@@ -335,18 +336,18 @@ module suino::test_flip{
 
 
 
-    fun require_shared(test:&mut Scenario):(Lottery,Core,Flip,Treasury<SLT>){
+    fun require_shared(test:&mut Scenario):(Lottery,Core,Flip,TreasuryCap<SLT>){
         let lottery = test::take_shared<Lottery>(test);
         let core = test::take_shared<Core>(test);
         let flip = test::take_shared<Flip>(test);
-        let cap = test::take_shared<Treasury<SLT>>(test);
+        let cap = test::take_shared<TreasuryCap<SLT>>(test);
         (lottery,core,flip,cap)
     }
     fun return_to_sender(
         lottery:Lottery,
         core:Core,
         flip:Flip,
-        cap:Treasury<SLT>){
+        cap:TreasuryCap<SLT>){
             test::return_shared(lottery);
             test::return_shared(core);
             test::return_shared(flip);

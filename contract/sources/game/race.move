@@ -6,7 +6,7 @@ module suino::race{
     use sui::balance::{Self,Balance};
     use sui::sui::SUI;
     use sui::transfer;
-    use sui::coin::{Self,Coin};
+    use sui::coin::{Self,Coin,TreasuryCap};
     use sui::tx_context::{TxContext,sender};
     use sui::event;
     use suino::core::{Self,Core,Ownership};
@@ -15,7 +15,7 @@ module suino::race{
         fee_deduct,
         mint_coin,
     };
-    use suino::token::{Treasury,SLT};
+    use suino::slt::{SLT};
 
     #[test_only]
     friend suino::race_test;
@@ -74,7 +74,7 @@ module suino::race{
     public(friend) entry fun bet(
         race:&mut Race,
         core:&mut Core,
-        cap:&mut Treasury<SLT>,
+        cap:&mut TreasuryCap<SLT>,
         coin:&mut Coin<SUI>,
         bet_value:u64,
         ctx:&mut TxContext)

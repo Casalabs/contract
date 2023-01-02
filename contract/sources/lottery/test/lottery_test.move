@@ -2,14 +2,14 @@
 module suino::test_lottery{
     
     use sui::test_scenario::{Self as test,next_tx,ctx,Scenario};
-    use sui::coin::{Coin};
+    use sui::coin::{Coin,TreasuryCap};
 
     use suino::lottery::{Self,Lottery};
     // use suino::player::{Self,Player};
     use suino::core::{Self,Core,Ownership};
-    use suino::token::{Self,Treasury,SLT};
+    use suino::slt::{Self,SLT};
     use suino::test_utils::{balance_check};
-
+    struct TestToken has drop{}
     
     #[test]
     fun test_lottery(){
@@ -26,11 +26,11 @@ module suino::test_lottery{
 
         next_tx(scenario,user);
         {
-            token::mint_for_testing(10,ctx(scenario));
+            slt::mint_for_testing(10,ctx(scenario));
         };
         next_tx(scenario,user2);
         {
-            token::mint_for_testing(10,ctx(scenario));
+            slt::mint_for_testing(10,ctx(scenario));
         };
 
 
@@ -39,7 +39,7 @@ module suino::test_lottery{
         next_tx(scenario,user);
         {   
             let lottery = test::take_shared<Lottery>(scenario);
-            let cap = test::take_shared<Treasury<SLT>>(scenario);
+            let cap = test::take_shared<TreasuryCap<SLT>>(scenario);
             let numbers = vector[vector[1,2,3,4,5,6]];
             let token = test::take_from_sender<Coin<SLT>>(scenario);
             lottery::buy_ticket(&mut lottery,&mut cap,&mut token,numbers,ctx(scenario));
@@ -75,7 +75,7 @@ module suino::test_lottery{
             // let player = test::take_from_sender<Player>(scenario);
             //vector[7,5,4,7,2,0] is only test
             let numbers = vector[vector[7,5,4,7,2,0]];
-            let cap = test::take_shared<Treasury<SLT>>(scenario);
+            let cap = test::take_shared<TreasuryCap<SLT>>(scenario);
             let token = test::take_from_sender<Coin<SLT>>(scenario);
             lottery::buy_ticket(&mut lottery,&mut cap,&mut token,numbers,ctx(scenario));
             test::return_to_sender(scenario,token);
@@ -90,7 +90,7 @@ module suino::test_lottery{
             // let player = test::take_from_sender<Player>(scenario);
             let numbers = vector[vector[7,5,4,7,2,0]];
             
-            let cap = test::take_shared<Treasury<SLT>>(scenario);
+            let cap = test::take_shared<TreasuryCap<SLT>>(scenario);
             debug::print(&cap);
             let token = test::take_from_sender<Coin<SLT>>(scenario);
             lottery::buy_ticket(&mut lottery,&mut cap,&mut token,numbers,ctx(scenario));
@@ -150,14 +150,14 @@ module suino::test_lottery{
 
         next_tx(scenario,user);
         {
-            token::mint_for_testing(2,ctx(scenario));
+            slt::mint_for_testing(2,ctx(scenario));
         };
 
         next_tx(scenario,user);
         {   
       
             let lottery = test::take_shared<Lottery>(scenario);
-            let cap = test::take_shared<Treasury<SLT>>(scenario);
+            let cap = test::take_shared<TreasuryCap<SLT>>(scenario);
             let token = test::take_from_sender<Coin<SLT>>(scenario);
             let numbers = vector[vector[1,2,3,4,5,6],vector[1,2,3,4,5,7],vector[2,3,4,5,6,7]];
             lottery::buy_ticket(&mut lottery,&mut cap,&mut token,numbers,ctx(scenario));
@@ -185,7 +185,7 @@ module suino::test_lottery{
 
         next_tx(scenario,user);
         {
-            token::mint_for_testing(10,ctx(scenario));
+            slt::mint_for_testing(10,ctx(scenario));
         };
 
         next_tx(scenario,user);
@@ -193,7 +193,7 @@ module suino::test_lottery{
             let lottery = test::take_shared<Lottery>(scenario);
             // let player = test::take_from_sender<Player>(scenario);
             let numbers = vector[vector[1,2,3,4,5,6,1]];
-            let cap = test::take_shared<Treasury<SLT>>(scenario);
+            let cap = test::take_shared<TreasuryCap<SLT>>(scenario);
             let token = test::take_from_sender<Coin<SLT>>(scenario);
             lottery::buy_ticket(&mut lottery,&mut cap,&mut token,numbers,ctx(scenario));
             test::return_to_sender(scenario,token);
@@ -222,7 +222,8 @@ module suino::test_lottery{
     fun init_(scenario:&mut Scenario){
         lottery::test_lottery(10000,ctx(scenario));
         core::test_core(5,100000,1000,ctx(scenario));
-        token::init_for_testing(ctx(scenario));
+        
+        slt::init_for_testing(ctx(scenario));
 
         // random::test_random(b"casino",ctx(scenario));
     }
