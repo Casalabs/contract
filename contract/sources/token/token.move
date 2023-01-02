@@ -1,4 +1,4 @@
-module suino::slt {
+module suino::sno {
     
     use sui::coin::{Self, Coin,TreasuryCap};
     use sui::balance;
@@ -11,17 +11,17 @@ module suino::slt {
     friend suino::game_utils;
     friend suino::lottery;
 
-    struct SLT has drop { }
+    struct SNO has drop { }
 
 
  
 
-    fun init(witness: SLT, ctx: &mut TxContext) {
+    fun init(witness: SNO, ctx: &mut TxContext) {
         let (cap,metadata) = coin::create_currency(
             witness,
             0,
-            b"SLT",
-            b"SuinoLotteryToken",
+            b"SNO",
+            b"SUINO",
             b"This coin use to buy Suino LotteryTicket",
             option::none(),
             ctx);
@@ -33,19 +33,19 @@ module suino::slt {
 
 
     public(friend) fun mint(
-        cap: &mut TreasuryCap<SLT>,amount:u64,ctx: &mut TxContext
+        cap: &mut TreasuryCap<SNO>,amount:u64,ctx: &mut TxContext
     ){
-       coin::mint_and_transfer<SLT>(cap,amount,sender(ctx),ctx)
+       coin::mint_and_transfer<SNO>(cap,amount,sender(ctx),ctx)
     }
 
 
     public(friend) fun burn(
-        cap: &mut TreasuryCap<SLT>, token: Coin<SLT>
+        cap: &mut TreasuryCap<SNO>, token: Coin<SNO>
     ) {
        balance::decrease_supply(coin::supply_mut(cap),coin::into_balance(token));
     }
 
-    public(friend) fun burn_amount(cap:&mut TreasuryCap<SLT>,token:&mut Coin<SLT>,amount:u64,ctx:&mut TxContext){
+    public(friend) fun burn_amount(cap:&mut TreasuryCap<SNO>,token:&mut Coin<SNO>,amount:u64,ctx:&mut TxContext){
         let burn_coin = coin::split(token,amount,ctx);
         burn(cap,burn_coin);
     }
@@ -54,17 +54,17 @@ module suino::slt {
     #[test_only]
     public fun init_for_testing(ctx:&mut TxContext){
       
-       init(SLT{},ctx);
+       init(SNO{},ctx);
     
     }
     #[test_only]
     public fun mint_for_testing(amount:u64,ctx:&mut TxContext){
-        let mint_coin = coin::mint_for_testing<SLT>(amount,ctx);
+        let mint_coin = coin::mint_for_testing<SNO>(amount,ctx);
         transfer::transfer(mint_coin,sender(ctx));
     }
     #[test_only]
-    public fun create_witness():SLT{
-        SLT{}
+    public fun create_witness():SNO{
+        SNO{}
 
     }
 }

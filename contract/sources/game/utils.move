@@ -8,7 +8,7 @@ module suino::game_utils{
     use suino::utils::{
         calculate_percent_amount
     };
-    use suino::slt::{Self,SLT};
+    use suino::sno::{Self,SNO};
     friend suino::race;
     friend suino::flip;
     
@@ -33,8 +33,8 @@ module suino::game_utils{
          core::game_set_random(core,ctx);
     }
 
-    public(friend) fun mint_coin(cap:&mut TreasuryCap<SLT>,amount:u64,ctx:&mut TxContext){
-        slt::mint(cap,amount,ctx);
+    public(friend) fun mint_coin(cap:&mut TreasuryCap<SNO>,amount:u64,ctx:&mut TxContext){
+        sno::mint(cap,amount,ctx);
     }
     
 

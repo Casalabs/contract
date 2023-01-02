@@ -15,7 +15,7 @@ module suino::race{
         fee_deduct,
         mint_coin,
     };
-    use suino::slt::{SLT};
+    use suino::sno::{SNO};
 
     #[test_only]
     friend suino::race_test;
@@ -74,7 +74,7 @@ module suino::race{
     public(friend) entry fun bet(
         race:&mut Race,
         core:&mut Core,
-        cap:&mut TreasuryCap<SLT>,
+        cap:&mut TreasuryCap<SNO>,
         coin:&mut Coin<SUI>,
         bet_value:u64,
         ctx:&mut TxContext)

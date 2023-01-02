@@ -19,7 +19,7 @@ module suino::flip{
         mint_coin,
     };
 
-    use suino::slt::{SLT};
+    use suino::sno::{SNO};
 
     const EInvalidAmount:u64 = 0;
     const EInvalidValue:u64 = 1;
@@ -63,7 +63,7 @@ module suino::flip{
     public entry fun bet(
         flip:&Flip,
         core:&mut Core,
-        cap:&mut TreasuryCap<SLT>,
+        cap:&mut TreasuryCap<SNO>,
         lottery:&mut Lottery,
         coin:&mut Coin<SUI>,
         bet_amount:u64,
