@@ -9,17 +9,17 @@ module suino::lottery{
     use sui::vec_map::{Self as map,VecMap};
     use sui::transfer;
     use sui::tx_context::{TxContext,sender};
-    use sui::coin;
+    use sui::coin::{Self,Coin};
     use sui::event;
-
+    use suino::token::{Self,SLT,Treasury};
     
-    use suino::player::{Self,Player};
+    // use suino::player::{Self,Player};
     use suino::core::{Self,Core,Ownership};
     
     #[test_only]
     friend suino::test_lottery;
 
-    const EInvalidCount:u64 = 0;
+    const EInvalidBalance:u64 = 0;
     const EInvalidValue:u64 = 1;
     struct Lottery has key{
         id:UID,
@@ -40,7 +40,6 @@ module suino::lottery{
     }
 
     fun init(ctx:&mut TxContext){
-        
         let lottery = Lottery{
             id:object::new(ctx),
             name:string::utf8(b"SUINO LOTTERY"),
@@ -84,27 +83,29 @@ module suino::lottery{
             return
         };
 
-        let jackpot_members = map::get_mut(&mut lottery.tickets,&jackpot_number);
+        let jackpot_members = *map::get(&mut lottery.tickets,&jackpot_number);
           
     
-        let jackpot_count = vector::length(jackpot_members);
+        let jackpot_count = vector::length(&jackpot_members);
         let jackpot_amount = lottery.prize / jackpot_count;
-       
-        while(!vector::is_empty(jackpot_members)){
-            let jackpot_member = vector::pop_back(jackpot_members);
-            let balance = core::remove_pool(core,jackpot_amount);
-            transfer::transfer(coin::from_balance<SUI>(balance,ctx),jackpot_member);
-        };
-       
-        
-        
         event::emit(JackpotEvent{
             jackpot_round:lottery.round,
             jackpot_amount,
             jackpot_number,
-            jackpot_members:*jackpot_members,
+            jackpot_members:jackpot_members,
             jackpot_count,
         });
+
+
+        while(!vector::is_empty(&jackpot_members)){
+            let jackpot_member = vector::pop_back(&mut jackpot_members);
+            let balance = core::remove_pool(core,jackpot_amount);
+            transfer::transfer(coin::from_balance<SUI>(balance,ctx),jackpot_member);
+        };
+
+
+        
+        lottery.tickets =map::empty<vector<u8>,vector<address>>();
         lottery.prize = 0;
         lottery.round = lottery.round + 1;
         core::lottery_zero(core)
@@ -114,18 +115,21 @@ module suino::lottery{
     //buy ticket
     public(friend) entry fun buy_ticket(
         lottery:&mut Lottery,
-        player:&mut Player,
+        cap:&mut Treasury<SLT>,
+        token:&mut Coin<SLT>,
         numbers:vector<vector<u8>>,
         ctx:&mut TxContext){
         
-        assert!(player::get_count(player) >= vector::length(&numbers), EInvalidCount);
+        
 
+        assert!(coin::value(token) >= vector::length(&numbers),EInvalidBalance);
+        
+        
         while(!vector::is_empty(&numbers)){
             let number = vector::pop_back(&mut numbers);
             assert!(vector::length(&number) < 7,EInvalidValue);
-            //player count set
-            player::count_down(player);
 
+            
             //lottery.tickets setting
             if (map::contains(&lottery.tickets,&number)){
                 let value = map::get_mut(&mut lottery.tickets,&number);
@@ -134,6 +138,8 @@ module suino::lottery{
                 map::insert(&mut lottery.tickets,number,vector::singleton(sender(ctx)));
             }
         };
+        token::burn_amount(cap,token,vector::length(&numbers),ctx);
+        
     }
 
     public fun prize_up(lottery:&mut Lottery,amount:u64){
@@ -175,7 +181,6 @@ module suino::lottery{
             prize,
           
         };
-
         transfer::share_object(lottery);
     }
 }

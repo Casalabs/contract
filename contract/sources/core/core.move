@@ -136,12 +136,12 @@ module suino::core{
         let holders_count = map::size(&holders);
         let reward_amount = get_reward(core);
         assert!(holders_count < reward_amount ,EEnoughReward);
-        let reward_pool = {
+        let holder_amount = {
             reward_amount / holders_count
         };
         while(!map::is_empty(&holders)){
             let (_,value) = map::pop(&mut holders);
-            let reward_balance = remove_reward(core,reward_pool);
+            let reward_balance = remove_reward(core,holder_amount);
             let reward_coin = coin::from_balance(reward_balance,ctx);
             transfer::transfer(reward_coin,value);
         };

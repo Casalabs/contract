@@ -286,7 +286,7 @@ module suino::core_test{
     // }
 
     #[test]
-    #[expected_failure(abort_code = 3)]
+    #[expected_failure(abort_code = core::EMaxOwner)]
     fun add_owner_fail(){
         let owner = @0xC0FFEE;
         let user = @0xA1;

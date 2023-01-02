@@ -10,13 +10,16 @@ module suino::flip{
     use sui::sui::SUI;
     use sui::event;
     use suino::core::{Self,Core,Ownership};
-    use suino::player::{Self,Player};
+    // use suino::player::{Self,Player};
     use suino::lottery::{Lottery};
     use suino::game_utils::{
         lose_game_lottery_update,
         fee_deduct,
         check_maximum_bet_amount,
+        mint_coin,
     };
+
+    use suino::token::{Treasury,SLT};
 
     const EInvalidAmount:u64 = 0;
     const EInvalidValue:u64 = 1;
@@ -27,6 +30,7 @@ module suino::flip{
         name:String,
         description:String,
         minimum_bet:u64,
+        
     }
     
     struct JackpotEvent has copy,drop{
@@ -46,6 +50,7 @@ module suino::flip{
             name:string::utf8(b"Suino Coin Flip"),
             description:string::utf8(b"can get at twice to octuple"),
             minimum_bet:10000,
+            
         };
         transfer::share_object(flip);
     }
@@ -58,16 +63,17 @@ module suino::flip{
     public entry fun bet(
         flip:&Flip,
         core:&mut Core,
-        player:&mut Player,
+        cap:&mut Treasury<SLT>,
         lottery:&mut Lottery,
         coin:&mut Coin<SUI>,
         bet_amount:u64,
         bet_value:vector<u64>, 
         ctx:&mut TxContext)
     {
+        let bet_value_length = vector::length(&bet_value);
         assert!(coin::value(coin) >= bet_amount,EInvalidAmount);
         assert!(bet_amount >= flip.minimum_bet,EInvalidAmount);
-        assert!(vector::length(&bet_value) > 0 && vector::length(&bet_value) < 6,EInvalidValue);
+        assert!(bet_value_length > 0 && bet_value_length < 4,EInvalidValue);
         let maximum_prize = check_maximum_bet_amount(bet_amount,core::get_gaming_fee_percent(core),vector::length(&bet_value),core);
         assert!((core::get_pool_balance(core) - maximum_prize) > core::get_lottery_amount(core),ETooMuchBet);
         
@@ -86,10 +92,9 @@ module suino::flip{
             core::add_pool(core,bet); 
         };
         
-        //player object count_up
-        player::count_up(player);
-        //after game set
-       
+        //token mint
+        mint_coin(cap,1,ctx);
+
 
         let (jackpot_amount,jackpot_value) = calculate_jackpot(core,bet_value,bet_amt,ctx);
 
@@ -106,8 +111,8 @@ module suino::flip{
                 jackpot_amount:0,
                 gamer:sender(ctx),
                 pool_balance:core::get_pool_balance(core),
-           
             });
+           
             return
         };
            

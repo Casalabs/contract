@@ -3,12 +3,14 @@ module suino::race_test{
     use sui::test_scenario::{Self as test,next_tx,ctx,Scenario};
     use sui::sui::SUI;
     use sui::coin::{Coin};
+    
     use suino::race::{Self,Race};
     use suino::core::{Self,Core,Ownership};
-    use suino::player::{
-        Player,
-        test_only_player,
-    };
+    use suino::token::{Self,Treasury,SLT};
+    // use suino::player::{
+    //     Player,
+    //     test_only_player,
+    // };
     use suino::test_utils::{balance_check,coin_mint,core_pool_check};
 
     
@@ -31,16 +33,16 @@ module suino::race_test{
         next_tx(scenario,owner);
         {
             init_for_testing(scenario);
-            coin_and_player_mint(scenario,user,10000,0);
-            coin_and_player_mint(scenario,user2,10000,0);
-            coin_and_player_mint(scenario,user3,10000,0);
-            coin_and_player_mint(scenario,user4,10000,0);
-            coin_and_player_mint(scenario,user5,10000,0);
-            coin_and_player_mint(scenario,user6,10000,0);
-            coin_and_player_mint(scenario,user7,10000,0);
-            coin_and_player_mint(scenario,user8,10000,0);
-            coin_and_player_mint(scenario,user9,10000,0);
-            coin_and_player_mint(scenario,user10,10000,0);
+            coin_mint(scenario,user,10000);
+            coin_mint(scenario,user2,10000);
+            coin_mint(scenario,user3,10000);
+            coin_mint(scenario,user4,10000);
+            coin_mint(scenario,user5,10000);
+            coin_mint(scenario,user6,10000);
+            coin_mint(scenario,user7,10000);
+            coin_mint(scenario,user8,10000);
+            coin_mint(scenario,user9,10000);
+            coin_mint(scenario,user10,10000);
         };
         next_tx(scenario,user);
         {
@@ -51,34 +53,42 @@ module suino::race_test{
         {
             bet(scenario,1);
         };
+
         next_tx(scenario,user3);
         {
             bet(scenario,1);
         };
+
         next_tx(scenario,user4);
         {
             bet(scenario,1);
         };
+
         next_tx(scenario,user5);
         {
             bet(scenario,5);
         };
+
         next_tx(scenario,user6);
         {
             bet(scenario,6);
         };
+
         next_tx(scenario,user7);
         {
             bet(scenario,7);
         };
+
         next_tx(scenario,user8);
         {
             bet(scenario,8);
         };
+
         next_tx(scenario,user9);
         {
             bet(scenario,9);
         };
+        
         next_tx(scenario,user10);
         {
             bet(scenario,0);
@@ -141,7 +151,7 @@ module suino::race_test{
         };
         next_tx(scenario,user10);
         {
-            balance_check(scenario,100_000);
+            balance_check(scenario,0);
             // balance_print(scenario);
         };
         test::end(scenario_val);
@@ -158,11 +168,11 @@ module suino::race_test{
         next_tx(scenario,owner);
         {
             init_for_testing(scenario);
-            coin_and_player_mint(scenario,user,10000,0);
+            coin_mint(scenario,user,10000);
         };
         next_tx(scenario,user);
         {   
-            bet(scenario,0);
+            bet(scenario,1);
         };
      
         next_tx(scenario,owner);
@@ -177,6 +187,7 @@ module suino::race_test{
             
             // jackpot_balance = 10000
             balance_check(scenario,100_000);
+            // balance_print(scenario);
         };
         test::end(scenario_val);
     }
@@ -190,11 +201,11 @@ module suino::race_test{
         next_tx(scenario,owner);
         {
             init_for_testing(scenario);
-            coin_and_player_mint(scenario,user,10000,0);
+            coin_mint(scenario,user,10000);
         };
         next_tx(scenario,user);
         {   
-            bet(scenario,1);
+            bet(scenario,2);
         };
         next_tx(scenario,owner);
         {
@@ -214,7 +225,7 @@ module suino::race_test{
 
 
     #[test]
-    #[expected_failure(abort_code = 0)]
+    #[expected_failure(abort_code = race::EInvalidBetValue)]
     fun invalid_value_bet(){
         let owner = @0xC0FEE;
         let user = @0xA1;
@@ -223,7 +234,7 @@ module suino::race_test{
         next_tx(scenario,owner);
         {
             init_for_testing(scenario);
-            coin_and_player_mint(scenario,user,10000,0);
+            coin_mint(scenario,user,10000);
         };
         next_tx(scenario,user);
         {
@@ -233,7 +244,7 @@ module suino::race_test{
     }
 
     #[test]
-    #[expected_failure(abort_code = 1)]
+    #[expected_failure(abort_code  = race::ENotEnoughBalance)]
     fun not_enough_amount(){
         let owner = @0xC0FEE;
         let user = @0xA1;
@@ -242,7 +253,7 @@ module suino::race_test{
         next_tx(scenario,owner);
         {
             init_for_testing(scenario);
-            coin_and_player_mint(scenario,user,100,0);
+            coin_mint(scenario,user,100)        
         };
         next_tx(scenario,user);
         {
@@ -258,19 +269,21 @@ module suino::race_test{
     fun init_for_testing(scenario:&mut Scenario){
         race::init_for_testing(ctx(scenario));
         core::test_core(5,1_000_000,0,ctx(scenario));
+        token::init_for_testing(ctx(scenario));
     }
 
     fun bet(scenario:&mut Scenario,bet_value:u64){
         let race = test::take_shared<Race>(scenario);
         let core = test::take_shared<Core>(scenario);
-        
+        let cap = test::take_shared<Treasury<SLT>>(scenario);
         let coin = test::take_from_sender<Coin<SUI>>(scenario);
-        let player = test::take_from_sender<Player>(scenario);
-        race::bet(&mut race,&mut core,&mut player,&mut coin,bet_value,ctx(scenario));
-        test::return_to_sender(scenario,player);
+        // let player = test::take_from_sender<Player>(scenario);
+        race::bet(&mut race,&mut core,&mut cap,&mut coin,bet_value,ctx(scenario));
+        // test::return_to_sender(scenario,player);
         test::return_to_sender(scenario,coin);
         test::return_shared(race);
         test::return_shared(core);
+        test::return_shared(cap);
     }
 
     
@@ -293,15 +306,4 @@ module suino::race_test{
         test::return_shared(core);
     }
 
-
-    fun coin_and_player_mint(
-        scenario:&mut Scenario,
-        recipeint:address,
-        mint_amount:u64,
-        player_count:u64){
-        coin_mint(scenario,recipeint,mint_amount);
-        test_only_player(ctx(scenario),recipeint,player_count);
-    }
-
-    
 }

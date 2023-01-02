@@ -1,0 +1,46 @@
+2023-01-02T07:04:21.524857Z  INFO sui::client_commands: [1m----- Certificate ----[0m
+2023-01-02T07:04:21.525391Z  INFO sui::client_commands: Transaction Hash: ESGDCyt966yh3uLED41kv7S8YY1WkfgHmK97oBTjV2FJ
+2023-01-02T07:04:21.525397Z  INFO sui::client_commands: Transaction Signature: AA==@OijAtvJpVsgIu4pJmXz1zqOBQMj0iSJSUYL3SS9wN6q74+D0hsEMd0eb0Tqof4QmLfmFzkC+wjlgAAWZaRR0Ag==@YpXz+co2Jhzx0G9yeS+5kogWm4w845+LqXBExQ+d5OE=
+2023-01-02T07:04:21.525404Z  INFO sui::client_commands: Signed Authorities Bitmap: RoaringBitmap<[0, 2, 3]>
+2023-01-02T07:04:21.525407Z  INFO sui::client_commands: Transaction Kind : Publish
+2023-01-02T07:04:21.525410Z  INFO sui::client_commands: [1m----- Transaction Effects ----[0m
+2023-01-02T07:04:21.525413Z  INFO sui::client_commands: Status : Success
+2023-01-02T07:04:21.525432Z  INFO sui::client_commands: Created Objects:
+2023-01-02T07:04:21.525435Z  INFO sui::client_commands:   - ID: 0x0bcbf768f55b9e902a05ddf9bf7df2b7fcbd3839 , Owner: Shared
+2023-01-02T07:04:21.525438Z  INFO sui::client_commands:   - ID: 0x22b01ad45ec2fe5910be2dd8c6438e021f6ec491 , Owner: Shared
+2023-01-02T07:04:21.525441Z  INFO sui::client_commands:   - ID: 0x407ae66c2e1cf59629190ec85aa23b6b3c8885b2 , Owner: Shared
+2023-01-02T07:04:21.525443Z  INFO sui::client_commands:   - ID: 0x409362856e9f78247e317f77f3fcb26c4aabfd0b , Owner: Immutable
+2023-01-02T07:04:21.525446Z  INFO sui::client_commands:   - ID: 0x47d160f5dab9ec47cf2b3d590ea037c73ff4f027 , Owner: Shared
+2023-01-02T07:04:21.525448Z  INFO sui::client_commands:   - ID: 0x5602274938e382b65196894ed3a615196e0c9339 , Owner: Shared
+2023-01-02T07:04:21.525451Z  INFO sui::client_commands:   - ID: 0x74e8575ac12bb9b1cb1466bb70542a9299f710f9 , Owner: Shared
+2023-01-02T07:04:21.525455Z  INFO sui::client_commands:   - ID: 0x83a040a992f108193057ae4a3ec0018207a838ce , Owner: Shared
+2023-01-02T07:04:21.525779Z  INFO sui::client_commands:   - ID: 0xa4360408253217b7b8ecd4295f04919b67f3818e , Owner: Account Address ( 0xfadc346a64b3ba782c27bfce4b4f23027c3823a2 )
+2023-01-02T07:04:21.525786Z  INFO sui::client_commands:   - ID: 0xc91b6b37d226f4f6a125f0685b8dbc970c65cce5 , Owner: Shared
+2023-01-02T07:04:21.525790Z  INFO sui::client_commands:   - ID: 0xcee20212527526686dfd64145cf53a45490ac78e , Owner: Account Address ( 0xfadc346a64b3ba782c27bfce4b4f23027c3823a2 )
+2023-01-02T07:04:21.525792Z  INFO sui::client_commands: Mutated Objects:
+2023-01-02T07:04:21.525796Z  INFO sui::client_commands:   - ID: 0x6b34817dd98ef48e7bebd5782e398072d7aa5c40 , Owner: Account Address ( 0xfadc346a64b3ba782c27bfce4b4f23027c3823a2 )
+2023-01-02T11:12:31.673772Z  INFO sui::client_commands:                  Object ID                  |  Version   |                    Digest                    |   Owner Type    |               Object Type               
+2023-01-02T11:12:31.676681Z  INFO sui::client_commands: ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2023-01-02T11:12:31.676689Z  INFO sui::client_commands:  0x173a7988259e2ae4fdea36132c6fd924c8073830 |    2674    | S63LrCxX4x5FwBzg6/zc68Rqx9+tATdhixSdyEN0xpg= |  AddressOwner   |      0x2::coin::Coin<0x2::sui::SUI>     
+2023-01-02T11:12:31.676692Z  INFO sui::client_commands:  0x19afd98633f3769dcd66556432060a3dfa22997b |    2676    | 5A4f0gq8I1moVDeW+rLNbfHregZ1eUbFqhR9hNv+71E= |  AddressOwner   |      0x2::coin::Coin<0x2::sui::SUI>     
+2023-01-02T11:12:31.676704Z  INFO sui::client_commands:  0x1ad4dcb63c9677e36ad484ae7ac7b985621bb154 |    2659    | 79dV9dydofljrgTPcTP0549QDJglxm+YvhKO/Ciyzw4= |  AddressOwner   |      0x2::coin::Coin<0x2::sui::SUI>     
+2023-01-02T11:12:31.676707Z  INFO sui::client_commands:  0x1ae46c8b949a90c15a114f6c3164c6da3bb2b785 |    2648    | zzzHc0mgkS2lA+dsBB3U9SwSmPn14kRPRqoCPryERuc= |  AddressOwner   |      0x2::coin::Coin<0x2::sui::SUI>     
+2023-01-02T11:12:31.676710Z  INFO sui::client_commands:  0x38d6be4abaf98bc777948cb27fd9acfe5a913753 |    2650    | dc2O5ZfQLJK8tWy8APdCwkUD1ea/bWtnEgbJL8Cq+KM= |  AddressOwner   |      0x2::coin::Coin<0x2::sui::SUI>     
+2023-01-02T11:12:31.676850Z  INFO sui::client_commands:  0x3cb93f26c6b82603bb792b2d0876d148d82441d0 |    2650    | kp1/LdZb3adj9jRQoyJQPXQqleLnxijPtTPeFSGCvnQ= |  AddressOwner   |      0x2::coin::Coin<0x2::sui::SUI>     
+2023-01-02T11:12:31.676857Z  INFO sui::client_commands:  0x41409c79d2dc67b22fc5d67b37ba674cfb0d7fce |    2648    | 7Q+gAPiswHkVwehXznwYSWbCNTnB5SmrsxGUR8acyTw= |  AddressOwner   |      0x2::coin::Coin<0x2::sui::SUI>     
+2023-01-02T11:12:31.676861Z  INFO sui::client_commands:  0x52764b87005669316b77db7825a835e2d58aa41c |    2648    | Ny0htjgmw3W6n8kfNg1tMWbDLczQd/PcRfYfTpF/dJA= |  AddressOwner   |      0x2::coin::Coin<0x2::sui::SUI>     
+2023-01-02T11:12:31.676865Z  INFO sui::client_commands:  0x69ad5fb159cf1d3399d077f19a450a42ae3fc494 |    2648    | ZxCdpDiF2ALwQVz0I3VUn9mPOcfGcGhg5zd9iG8BoWs= |  AddressOwner   |      0x2::coin::Coin<0x2::sui::SUI>     
+2023-01-02T11:12:31.676868Z  INFO sui::client_commands:  0x6b00d4d6519c32fb0484268d7da7e118b56c6bee |    2650    | zwuQdUcPCzvqQxuXDYejvXpB975TMFmUJ3jS0PkC4+w= |  AddressOwner   |      0x2::coin::Coin<0x2::sui::SUI>     
+2023-01-02T11:12:31.676871Z  INFO sui::client_commands:  0x6be21dd21dcd9ccd8109f402719e8c348322604b |    2676    | YoT2rT547RE7qw7SOYcajCGgjOiZGFOYPxufzERZ9Kc= |  AddressOwner   |      0x2::coin::Coin<0x2::sui::SUI>     
+2023-01-02T11:12:31.676874Z  INFO sui::client_commands:  0x7712f0fd49f2a888fd5ea3892513ad9da6431897 |    2676    | ADtArjJK8Y76BrCPfCbLNkn0jGeRUsMozLpLWBfM7UM= |  AddressOwner   |      0x2::coin::Coin<0x2::sui::SUI>     
+2023-01-02T11:12:31.676877Z  INFO sui::client_commands:  0x99dcd8e0e9829d698cf7bfb7b747caae27c50d87 |    2674    | Uc/mu9oMcmqc6UZjElF1LUvjARmSj2Ac1Ka4i/hjC5o= |  AddressOwner   |      0x2::coin::Coin<0x2::sui::SUI>     
+2023-01-02T11:12:31.676880Z  INFO sui::client_commands:  0xa4360408253217b7b8ecd4295f04919b67f3818e |    2117    | TAZtYEC/r7Ezjk3UXBb92UGvcjRo8NniCLyhqiaiFao= |  AddressOwner   | 0x409362856e9f78247e317f77f3fcb26c4aabfd0b::nft::Ownership
+2023-01-02T11:12:31.676937Z  INFO sui::client_commands:  0xaee6882bbd960837294b1a5e2d8206a75c53bfa6 |    2674    | m80bPnHI7q3KUh1yZ16DgKNZme/HNL9FMQZ5wXWTyhg= |  AddressOwner   |      0x2::coin::Coin<0x2::sui::SUI>     
+2023-01-02T11:12:31.676942Z  INFO sui::client_commands:  0xb09a5daf191d5353547b115396428090857c1f2f |    2676    | YfURaoc7f0afS79fLaUPnD/iSPishGqxS/TNmkgMAAg= |  AddressOwner   |      0x2::coin::Coin<0x2::sui::SUI>     
+2023-01-02T11:12:31.676945Z  INFO sui::client_commands:  0xb3beeb7bc239418e75ded346f0e41947e708e67c |    2650    | 7Tq0KKNL1wyU/pKthAO0LlJno1GPAmZO50vlYeIIrQ0= |  AddressOwner   |      0x2::coin::Coin<0x2::sui::SUI>     
+2023-01-02T11:12:31.676948Z  INFO sui::client_commands:  0xc46848e8da4d5bcde7bf158ff382e45d0037c4fe |    2674    | Reg+GnwexS7QuPOH8c1g8PqnttZBTUhz6CV3d/HB3Ds= |  AddressOwner   |      0x2::coin::Coin<0x2::sui::SUI>     
+2023-01-02T11:12:31.676951Z  INFO sui::client_commands:  0xc620fcdbfe41881b1da24d0dd5af9cce68ff8d4a |    2650    | FodsX3/bLoLH7nqb1W3KIKPujkpafPLr8+CW6Wd8M5k= |  AddressOwner   |      0x2::coin::Coin<0x2::sui::SUI>     
+2023-01-02T11:12:31.676953Z  INFO sui::client_commands:  0xcee20212527526686dfd64145cf53a45490ac78e |    2659    | FsZNW30AZv87DQEGSzv5bz4o/bHXogr+C1oxYJ78jPE= |  AddressOwner   | 0x409362856e9f78247e317f77f3fcb26c4aabfd0b::core::Ownership
+2023-01-02T11:12:31.677393Z  INFO sui::client_commands:  0xe6f58c663d9c7785545345dd2c1b3546a2fc2920 |    2676    | w82BKJheHAEz8sN/s/lwBxqKdzw1aXcLECDh3Qhm9uE= |  AddressOwner   |      0x2::coin::Coin<0x2::sui::SUI>     
+2023-01-02T11:12:31.677403Z  INFO sui::client_commands:  0xfd18b63168f4466b78d33dab0c8fcaeaff4eddac |    2674    | UV6l7GmmTwnx3ZDBeLI63Ubc/7fVqgtLmtGcVkll8/I= |  AddressOwner   |      0x2::coin::Coin<0x2::sui::SUI>     
+2023-01-02T11:12:31.677406Z  INFO sui::client_commands: Showing 22 results.

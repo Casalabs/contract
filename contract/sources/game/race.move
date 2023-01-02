@@ -10,11 +10,12 @@ module suino::race{
     use sui::tx_context::{TxContext,sender};
     use sui::event;
     use suino::core::{Self,Core,Ownership};
-    use suino::player::{Self,Player};
+    // use suino::player::{Self,Player};
     use suino::game_utils::{
         fee_deduct,
-        set_random,
+        mint_coin,
     };
+    use suino::token::{Treasury,SLT};
 
     #[test_only]
     friend suino::race_test;
@@ -73,7 +74,7 @@ module suino::race{
     public(friend) entry fun bet(
         race:&mut Race,
         core:&mut Core,
-        player:&mut Player,
+        cap:&mut Treasury<SLT>,
         coin:&mut Coin<SUI>,
         bet_value:u64,
         ctx:&mut TxContext)
@@ -82,12 +83,15 @@ module suino::race{
         assert!(coin::value(coin) >= race.minimum_bet,ENotEnoughBalance);
         let coin_balance = coin::balance_mut(coin);
         let bet = balance::split(coin_balance,race.minimum_bet);
-        player::count_up(player);
+        // player::count_up(player);
         fee_deduct(core,&mut bet);
         add_balance(race,bet);
         set_join_member(race,ctx);
         set_bet_state(race,bet_value,ctx);
-        set_random(core,ctx);
+        // set_random(core,ctx);
+
+        core::game_set_random(core,ctx);
+         mint_coin(cap,1,ctx);
         event::emit(Betting{
             gamer:sender(ctx),
             bet_value,

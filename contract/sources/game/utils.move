@@ -8,7 +8,9 @@ module suino::game_utils{
     use suino::utils::{
         calculate_percent_amount
     };
-
+    use suino::token::{Self,Treasury,SLT};
+    friend suino::race;
+    friend suino::flip;
     
     const EMaximumBet:u64 = 0;
     const EInvalidValue:u64 = 1;
@@ -27,10 +29,14 @@ module suino::game_utils{
     }
 
 
-    public fun set_random(core:&mut Core,ctx:&mut TxContext){
+    public(friend) fun set_random(core:&mut Core,ctx:&mut TxContext){
          core::game_set_random(core,ctx);
     }
 
+    public(friend) fun mint_coin(cap:&mut Treasury<SLT>,amount:u64,ctx:&mut TxContext){
+        token::mint(cap,amount,ctx);
+    }
+    
 
     public  fun check_maximum_bet_amount(bet_amount:u64,fee_percent:u8,value_count:u64,core:&Core):u64{
         
@@ -52,7 +58,8 @@ module suino::game_utils{
         assert!(compare_percent <= 10,EMaximumBet);
         bet_amount
     }
-  
+    
+    
 
 }
 

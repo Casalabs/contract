@@ -7,10 +7,10 @@ module suino::test_flip{
     use sui::sui::SUI;
     use suino::lottery::{Self,Lottery};
     use suino::core::{Self,Core};
-    use suino::player::{Self,Player};
     use suino::flip::{Self,Flip};
+    use suino::token::{Self,Treasury,SLT};
     use suino::test_utils::{balance_check,coin_mint};
-    use std::debug;
+    
     #[test]
     fun test_flip(){
         let owner = @0xC0FFEE;
@@ -34,14 +34,14 @@ module suino::test_flip{
         //==============Win==============================
         next_tx(scenario,user);
         {   
-            //!! vector[1,0,1] = only test win from test case 
-            test_game(scenario,10000,vector[1,0,0]);
+            //!! vector[1,1,1] = only test win from test case 
+            test_game(scenario,10000,vector[1,1,1]);
         };
         
        //jackpot coin check
        next_tx(scenario,user);
        {    
-            // balance_print(scenario);
+            
             balance_check(scenario,76_000);
        };
 
@@ -51,7 +51,8 @@ module suino::test_flip{
             let (
                 lottery,
                 core,
-                flip
+                flip,
+                cap
             )
             = require_shared(scenario);
 
@@ -61,7 +62,7 @@ module suino::test_flip{
             //(10000 - 500) * (2 * jackpot_count) = 38000
             //-----------------------------------------------
             //| core check                                   |
-            //| pool_original_balance =          1_000_000   |
+            //| pool_original_balance =        100_000_000   |
             //|                                              |
             //|                                              | 
             //| betting_balance       =              10000   |
@@ -69,11 +70,11 @@ module suino::test_flip{
             //| rolling_balance       =               9500   |
             //   jackpot_count        =                  3   |
             //| jackpot_balance       =             76_000   | 
-            //| pool_reserve_balance  =            933_500   | 
+            //| pool_reserve_balance  =         99_933_500   | 
             //-----------------------------------------------
            
             // core_pool_check(scenario,)
-            assert!(core::get_pool_balance(&core) == 933_500,0);
+            assert!(core::get_pool_balance(&core) == 99_933_500,0);
             assert!(core::get_reward(&core) == 500,0);
 
 
@@ -84,9 +85,9 @@ module suino::test_flip{
             //|               1                       |
             //| now_count              = 11           |
             //-----------------------------------------
-            let player = test::take_from_sender<Player>(scenario);
-            assert!(player::get_count(&player) == 11,0);
-            test::return_to_sender(scenario,player);
+            // let player = test::take_from_sender<Player>(scenario);
+            // assert!(player::get_count(&player) == 11,0);
+            // test::return_to_sender(scenario,player);
             //----------------------------------------
             //| lottery check                         |
             //| original_lottery_prize   =       0    |
@@ -94,7 +95,7 @@ module suino::test_flip{
             //-----------------------------------------
             assert!(lottery::get_prize(&lottery) == 0,0);
             
-            return_to_sender(lottery,core,flip);
+            return_to_sender(lottery,core,flip,cap);
         };
         
 
@@ -103,8 +104,8 @@ module suino::test_flip{
         //========================Lose=============================
         next_tx(scenario,user);
         {   
-            //[0,0,1] is only test case
-            test_game(scenario,10_000,vector[0,0,1]);
+            //[0,0,0] is only test case
+            test_game(scenario,10_000,vector[0,0,0]);
         };
 
         //fail balance check
@@ -118,35 +119,29 @@ module suino::test_flip{
             let (
                 lottery,
                 core,
-                flip
+                flip,
+                cap
             )
             = require_shared(scenario);
             //----------------------------------------------
             //| core check                                  |
-            //| pool_original_balance =          933_500    |
+            //| pool_original_balance =       99_933_500    |
             //|               +                             |
             //| betting_balance       =           10_000    |
             //               -                              |
             //| jackpot_balance       =                0    |
             //| fee_reward            =              500    |
             //|    add_pool           =            9_500    |
-            //| pool_reserve_balance  =          943_000    |
+            //| pool_reserve_balance  =       99_943_000    |
             //----------------------------------------------
-            debug::print(&core::get_pool_balance(&core));
-            assert!(core::get_pool_balance(&core) == 943_000,0);
+            assert!(core::get_pool_balance(&core) == 99_943_000,0);
             assert!(core::get_reward(&core) == 1000,0);
 
 
-             //----------------------------------------
-            //| counter check                         |
-            //| counter_original_count = 11           |
-            //|               +                       |
-            //|               1                       |
-            //| now_count              = 12           |
-            //-----------------------------------------
-            let player = test::take_from_sender<Player>(scenario);
-            assert!(player::get_count(&player) == 12,0);
-            test::return_to_sender(scenario,player);
+        
+
+   
+      
             //----------------------------------------
             //| lottery check                         |
             //| original_lottery_prize   =          0 |
@@ -160,14 +155,14 @@ module suino::test_flip{
             
             assert!(lottery::get_prize(&lottery) == 1_900,0);
             
-            return_to_sender(lottery,core,flip);
+            return_to_sender(lottery,core,flip,cap);
         };
 
         test::end(scenario_val);
     }
 
     #[test]
-    #[expected_failure(abort_code = 0)]
+    #[expected_failure(abort_code = flip::EInvalidAmount)]
     fun test_game_minimum_amount(){
         let user = @0xA1;
         let owner = @0xC0FFEE;
@@ -197,7 +192,7 @@ module suino::test_flip{
     }
 
     #[test]
-    #[expected_failure(abort_code = 0)]
+    #[expected_failure(abort_code = flip::EInvalidAmount)]
     fun test_more_amount_than_coin(){
         let user = user();
         let owner = @0xC0FFEE;
@@ -228,7 +223,7 @@ module suino::test_flip{
 
 
     #[test]
-    #[expected_failure(abort_code = 1)]
+    #[expected_failure(abort_code = flip::EInvalidValue)]
     fun test_more_value(){
         let owner = @0xC0FFEE;
         let user = @0xA1;
@@ -240,17 +235,17 @@ module suino::test_flip{
         };
         next_tx(scenario,user);
         {
-            test_user_init(scenario,user,20000);
+            test_user_init(scenario,user,10000);
         };
         next_tx(scenario,user);
         {
-            test_game(scenario,20000,vector[0,0,1,1]);
+            test_game(scenario,10000,vector[0,0,1,1]);
         };
         test::end(scenario_val);
     }
     
     #[test]
-    #[expected_failure(abort_code = 1)]
+    #[expected_failure(abort_code = flip::EInvalidValue)]
     fun test_zero_value(){
         let owner = @0xC0FFEE;
         let user = @0xA1;
@@ -273,7 +268,7 @@ module suino::test_flip{
     }
 
     #[test]
-    #[expected_failure(abort_code = 1)]
+    #[expected_failure(abort_code = flip::EInvalidValue)]
     fun test_invalid_value(){
         let user = user();
         let owner = @0xC0FFEE;
@@ -298,11 +293,12 @@ module suino::test_flip{
     //===============test utils====================
     fun test_init(scenario:&mut Scenario){
             lottery::test_lottery(0,ctx(scenario));
-            core::test_core(5,1000000,0,ctx(scenario));
+            core::test_core(5,100000000,0,ctx(scenario));
             flip::init_for_testing(ctx(scenario));
+            token::init_for_testing(ctx(scenario));
     }
     fun test_user_init(scenario:&mut Scenario,addr:address,amount:u64){
-        player::test_create(ctx(scenario),10);
+        // player::test_create(ctx(scenario),10);
         coin_mint(scenario,addr,amount);
     }
 
@@ -317,17 +313,16 @@ module suino::test_flip{
           let (
                 lottery,
                 core,
-                flip
+                flip,
+                cap,
             )
             = require_shared(scenario);
                 
-
-            let player = test::take_from_sender<Player>(scenario);
-           
+          
             flip::bet(
                 &flip,
                 &mut core,
-                &mut player,
+                &mut cap,
                 &mut lottery,
                 test_coin,
                 amount,
@@ -335,35 +330,30 @@ module suino::test_flip{
                 ctx(scenario)
             );
             
-            test::return_to_sender(scenario,player);
-            return_to_sender(lottery,core,flip);
+            return_to_sender(lottery,core,flip,cap);
     }
-   
 
 
-    fun require_shared(test:&mut Scenario):(Lottery,Core,Flip){
+
+    fun require_shared(test:&mut Scenario):(Lottery,Core,Flip,Treasury<SLT>){
         let lottery = test::take_shared<Lottery>(test);
         let core = test::take_shared<Core>(test);
         let flip = test::take_shared<Flip>(test);
-        (lottery,core,flip)
+        let cap = test::take_shared<Treasury<SLT>>(test);
+        (lottery,core,flip,cap)
     }
     fun return_to_sender(
         lottery:Lottery,
         core:Core,
-        flip:Flip){
+        flip:Flip,
+        cap:Treasury<SLT>){
             test::return_shared(lottery);
             test::return_shared(core);
             test::return_shared(flip);
+             test::return_shared(cap);
     }
     
     fun user():address{
         @0xA1
     }
-    
- 
-
-
-
-
-    
 }
