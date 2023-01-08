@@ -61,6 +61,14 @@ module suino::core{
         name:String,
     }
 
+    entry fun create_maker(ctx:&mut TxContext){
+        let maker = RandomMaker{
+            id:object::new(ctx),
+            name:string::utf8(b"Suino Random Maker")
+        };
+        transfer::transfer(maker,sender(ctx));
+    }
+
     // -----init-------
     fun init(ctx:&mut TxContext){
 
@@ -100,7 +108,7 @@ module suino::core{
         assert!(core.lock == false,ELock)
     }
 
-    //----------Entry--------------
+    //==============Owner==================
     public(friend) entry fun deposit(_:&Ownership,core:&mut Core,token:Coin<SUI>){
         let balance = coin::into_balance(token);
         add_pool(core,balance);
@@ -116,10 +124,6 @@ module suino::core{
         transfer::transfer(coin::from_balance(balance,ctx),sender(ctx));
         core.lock = true;
     }
-
-
- 
-
 
    public(friend)   entry fun set_gaming_fee_percent(_:&Ownership,core:&mut Core,percent:u8){
         core.gaming_fee_percent = percent;
@@ -145,8 +149,46 @@ module suino::core{
             transfer::transfer(reward_coin,value);
         };
     }
-    
-     //=============random=====================
+
+    entry fun set_random_salt(_:&RandomMaker,core:&mut Core,salt:vector<u8>){
+        random::change_salt(&mut core.random,salt)
+    }
+
+    entry fun set_random_fee(_:&Ownership,core:&mut Core,amount:u64){
+        core.random_fee = amount;
+    }
+
+    // suino game append
+    entry fun game_add<T:key>(_:&Ownership,core:&mut Core,game:&T){
+        vector::push_back(&mut core.game_contract,object::id_address(game));
+    }
+
+    public(friend) entry fun add_owner(_:&Ownership,core:&mut Core,new_owner:address,ctx:&mut TxContext){
+        //owners size have limit 4
+        assert!(core.owners < 4,EMaxOwner);
+        let ownership = Ownership{
+            id:object::new(ctx),
+            name:string::utf8(b"Suino Core Ownership")
+        };
+        transfer::transfer(ownership,new_owner);
+        core.owners = core.owners + 1;
+    }
+
+    public(friend) entry fun sign(_:&Ownership,core:&mut Core,ctx:&mut TxContext){
+        let sign = &mut core.sign;
+        set::insert(sign,sender(ctx));
+        if (core.owners / set::size(&core.sign) == 1){
+            core.lock = false;
+            core.sign = set::empty();
+       };
+    }
+
+    public(friend) entry fun lock(_:&Ownership,core:&mut Core){
+        core.lock = true;
+    }
+
+
+    //=============random=====================
     public(friend) fun get_random_number(core:&mut Core,ctx:&mut TxContext):u64{
         random::get_random_number(&mut core.random,ctx)
     }
@@ -163,15 +205,8 @@ module suino::core{
         random::game_set_random(&mut core.random,ctx)
     }
 
-    entry fun set_random_salt(_:&RandomMaker,core:&mut Core,salt:vector<u8>){
-        random::change_salt(&mut core.random,salt)
-    }
-    
-    entry fun set_random_fee(_:&Ownership,core:&mut Core,amount:u64){
-        core.random_fee = amount;
-    }
 
-    
+
 
     //-----------Pool ----------------
 
@@ -208,9 +243,7 @@ module suino::core{
     //================suino game function =====================
     //Additional use of the following suino game
 
-    entry fun game_add<T:key>(_:&Ownership,core:&mut Core,game:&T){
-        vector::push_back(&mut core.game_contract,object::id_address(game));
-    }
+   
    
 
     public fun game_add_pool<T:key>(core:&mut Core,game:&T,add_pool_balance:Balance<SUI>){
@@ -251,30 +284,8 @@ module suino::core{
 
 
 
-    //=====================only owner=================
-    public(friend) entry fun add_owner(_:&Ownership,core:&mut Core,new_owner:address,ctx:&mut TxContext){
-        //owners size have limit 4
-        assert!(core.owners < 4,EMaxOwner);
-        let ownership = Ownership{
-            id:object::new(ctx),
-            name:string::utf8(b"Suino Core Ownership")
-        };
-        transfer::transfer(ownership,new_owner);
-        core.owners = core.owners + 1;
-    }
 
-    public(friend) entry fun sign(_:&Ownership,core:&mut Core,ctx:&mut TxContext){
-        let sign = &mut core.sign;
-        set::insert(sign,sender(ctx));
-        if (core.owners / set::size(&core.sign) == 1){
-            core.lock = false;
-            core.sign = set::empty();
-       };
-    }
 
-    public(friend) entry fun lock(_:&Ownership,core:&mut Core){
-        core.lock = true;
-    }
 
    //==============state======================
     public fun get_pool_balance(core:&Core):u64{

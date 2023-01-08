@@ -61,8 +61,8 @@ module suino::random_test{
         let random = random::create();       
         let owner_hash = b"casino";
         let user_hash = ecdsa_k1::keccak256(&b"suino");
-        let compare_hash = utils::vector_combine(owner_hash,user_hash);
-
+        let compare_hash = utils::vector_combine_hasing(owner_hash,user_hash);
+ 
         let random_hash = random::get_hash(&random);
         assert!(compare_hash == random_hash,0);
         random::destroy_random(random);

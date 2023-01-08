@@ -2,14 +2,13 @@
 module suino::utils_test{
     use suino::utils::{
         calculate_percent_amount,
-        vector_combine,
-        keccak256,
+        vector_combine_hasing,
         u64_from_vector
         };
-    use sui::ecdsa_k1;
+    
     use sui::test_scenario::{Self as test,ctx};
     use sui::tx_context;
-    
+    use sui::ecdsa_k1;
     
     #[test]
     fun u64_from_vector_test(){
@@ -45,16 +44,10 @@ module suino::utils_test{
     fun vector_combine_test(){
         let vector1 = b"Hello";
         let vector2 = b"World";
-        let result = vector_combine(vector1,vector2);
-        let result2 = b"HellodlroW";
+        let result = vector_combine_hasing(vector1,vector2);
+        let result2 =ecdsa_k1::keccak256(&b"HellodlroW") ;
         assert!(result == result2,0);
     }
 
-    #[test] fun keccak256_test(){
-        let byte = b"hello";
-        let compare_hash =  ecdsa_k1::keccak256(&byte);
-        let hash = keccak256(byte);
-        assert!(hash ==compare_hash,0)
-    }
 
 }

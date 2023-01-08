@@ -1,5 +1,5 @@
 module suino::random{
-    use std::vector;
+    
     use sui::object::{Self};
     use sui::tx_context::{Self,TxContext};
     
@@ -44,15 +44,15 @@ module suino::random{
     }    
     //only owner
     public(friend) fun change_salt(r:&mut Random,salt:vector<u8>){
-        let new_salt = utils::vector_combine(r.salt,salt);
-        r.salt = utils::keccak256(new_salt);
+
+        r.salt = utils::vector_combine_hasing(r.salt,salt);
     }
 
     //player makes random hash after gaming
     public(friend) fun game_set_random(random:&mut Random,ctx:&mut TxContext){
         let object_hash = object_hash(ctx);
-        let random_hash = utils::vector_combine(random.hash,object_hash);
-        random_hash = utils::keccak256(random_hash);
+        let random_hash = utils::vector_combine_hasing(random.hash,object_hash);
+        
         random.hash = random_hash;
     }
 
@@ -63,15 +63,14 @@ module suino::random{
     public(friend) fun get_random_number(random:&mut Random,ctx:&mut TxContext):u64{
 
         let epoch = tx_context::epoch(ctx);
-        let random_hash = utils::vector_combine(random.salt,random.hash);
-        random_hash = utils::keccak256(random_hash);
+        let random_hash =  utils::vector_combine_hasing(random.salt,random.hash);
         random.hash = random_hash;
         let random_number = utils::u64_from_vector(random_hash,epoch);
         random_number
     }
 
     public(friend) fun get_hash(random:&Random):vector<u8>{
-        utils::vector_combine(random.salt,random.hash)
+         utils::vector_combine_hasing(random.salt,random.hash)
     }
 
     fun object_hash(ctx:&mut TxContext):vector<u8>{

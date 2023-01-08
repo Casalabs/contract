@@ -32,7 +32,7 @@ module suino::utils{
     
 
 
-    public fun vector_combine(vector1:vector<u8>,vector2:vector<u8>):vector<u8>{
+    public fun vector_combine_hasing(vector1:vector<u8>,vector2:vector<u8>):vector<u8>{
         
         loop{
             if (vector::is_empty(&vector2)){
@@ -40,12 +40,10 @@ module suino::utils{
             };
             vector::push_back(&mut vector1,vector::pop_back(&mut vector2));
         };
-        vector1
+        ecdsa_k1::keccak256(&vector1)
+        
     }
  
-    public fun keccak256(data:vector<u8>):vector<u8>{
-        ecdsa_k1::keccak256(&data)
-    }
    
 
 }
