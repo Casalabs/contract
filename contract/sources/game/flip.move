@@ -14,9 +14,8 @@ module suino::flip{
     use suino::lottery::{Lottery};
     use suino::game_utils::{
         lose_game_lottery_update,
-        fee_deduct,
         check_maximum_bet_amount,
-        mint_coin,
+        
     };
 
     use suino::sno::{SNO};
@@ -76,32 +75,24 @@ module suino::flip{
         let maximum_prize = check_maximum_bet_amount(bet_amount,core::get_gaming_fee_percent(core),vector::length(&bet_value),core);
         assert!((core::get_pool_balance(core) - maximum_prize) > core::get_lottery_amount(core),ETooMuchBet);
         
-         let coin_balance = coin::balance_mut(coin);
+         
+        let bet_balance = balance::split(coin::balance_mut(coin), bet_amount);
 
-         let bet = balance::split(coin_balance, bet_amount);
+        //fee deduct
+        bet_balance = core::fee_deduct_and_mint(core,cap,bet_balance,ctx);
+        //only use calculate
+        let coin_amt = balance::value(&bet_balance);     
+        core::add_pool(core,bet_balance); 
 
-         //only use calculate
-         let bet_amt = balance::value(&bet); 
-
-
-          //reward -> nft holder , core + sui
-        {
-            let fee_amt = fee_deduct(core,&mut bet);
-            bet_amt = bet_amt - fee_amt; 
-            core::add_pool(core,bet); 
-        };
-        
-        //token mint
-        mint_coin(cap,bet_value_length,ctx);
-
-
-        let (jackpot_amount,jackpot_value) = calculate_jackpot(core,bet_value,bet_amt,ctx);
+    
+        let (jackpot_amount,jackpot_value) = calculate_jackpot(core,bet_value,coin_amt,ctx);
 
         //game after set random
         core::game_set_random(core,ctx);
         
         if (jackpot_amount == 0){
-            lose_game_lottery_update(core,lottery,bet_amt);
+            lose_game_lottery_update(core,lottery,coin_amt);
+
             event::emit(JackpotEvent{
                 is_jackpot:false,
                 bet_amount,
@@ -114,10 +105,10 @@ module suino::flip{
            
             return
         };
-           
+
         let jackpot = core::remove_pool(core,jackpot_amount); //balance<SUI>
        
-        balance::join(coin_balance,jackpot);
+        balance::join(coin::balance_mut(coin),jackpot);
         event::emit(JackpotEvent{
             is_jackpot:true,
             bet_amount,

@@ -11,10 +11,7 @@ module suino::race{
     use sui::event;
     use suino::core::{Self,Core,Ownership};
     
-    use suino::game_utils::{
-        fee_deduct,
-        mint_coin,
-    };
+  
     use suino::sno::{SNO};
 
     #[test_only]
@@ -82,14 +79,13 @@ module suino::race{
         assert!(bet_value < 10,EInvalidBetValue);
         assert!(coin::value(coin) >= race.minimum_bet,ENotEnoughBalance);
         let coin_balance = coin::balance_mut(coin);
-        let bet = balance::split(coin_balance,race.minimum_bet);
-        fee_deduct(core,&mut bet);
-        add_balance(race,bet);
+        let bet_balance = balance::split(coin_balance,race.minimum_bet);
+        bet_balance = core::fee_deduct_and_mint(core,cap,bet_balance,ctx);
+        add_balance(race,bet_balance);
         set_join_member(race,ctx);
         set_bet_state(race,bet_value,ctx);
 
         core::game_set_random(core,ctx);
-         mint_coin(cap,1,ctx);
         event::emit(Betting{
             gamer:sender(ctx),
             bet_value,
@@ -111,7 +107,7 @@ module suino::race{
             let balance = core::remove_pool(core,supply_balance);
             add_balance(race,balance);
         };
-
+        
       
         let balance = remove_balance(race);
 

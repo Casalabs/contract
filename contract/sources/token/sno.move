@@ -10,7 +10,7 @@ module suino::sno {
     
     friend suino::game_utils;
     friend suino::lottery;
-
+    friend suino::core;
     struct SNO has drop { }
 
 

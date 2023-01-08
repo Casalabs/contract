@@ -1,32 +1,20 @@
 module suino::game_utils{
-    use sui::coin::{TreasuryCap};
-    use sui::balance::{Self,Balance};
-    use sui::sui::SUI;
-    use sui::tx_context::{TxContext};
     use suino::core::{Self,Core};
     use suino::lottery::{Self,Lottery};
     use suino::utils::{
         calculate_percent_amount
     };
-    use suino::sno::{Self,SNO};
+    
     friend suino::race;
     friend suino::flip;
     
     const EMaximumBet:u64 = 0;
     const EInvalidValue:u64 = 1;
-
+ 
     public fun lose_game_lottery_update(core:&mut Core,lottery:&mut Lottery,death_amount:u64){
         let lottery_percent = core::get_lottery_percent(core);
         lottery::prize_up(lottery,calculate_percent_amount(death_amount,lottery_percent));
         core::add_lottery_amount(core,calculate_percent_amount(death_amount,lottery_percent));
-    }
-
-    public fun fee_deduct(core:&mut Core,balance:&mut Balance<SUI>):u64{
-         let fee_percent = core::get_gaming_fee_percent(core);
-         let fee_amt = calculate_percent_amount(balance::value(balance),fee_percent); 
-         let fee = balance::split<SUI>(balance,fee_amt);  
-         core::add_reward(core,fee);
-         fee_amt
     }
 
 
@@ -34,9 +22,7 @@ module suino::game_utils{
     //      core::game_set_random(core,ctx);
     // }
 
-    public(friend) fun mint_coin(cap:&mut TreasuryCap<SNO>,amount:u64,ctx:&mut TxContext){
-        sno::mint(cap,amount,ctx);
-    }
+
     
 
     public  fun check_maximum_bet_amount(bet_amount:u64,fee_percent:u8,value_count:u64,core:&Core):u64{

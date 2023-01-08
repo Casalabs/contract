@@ -1,5 +1,5 @@
 module suino::random{
-    
+    use std::vector;
     use sui::object::{Self};
     use sui::tx_context::{Self,TxContext};
     
@@ -44,7 +44,8 @@ module suino::random{
     }    
     //only owner
     public(friend) fun change_salt(r:&mut Random,salt:vector<u8>){
-        r.salt = salt;
+        let new_salt = utils::vector_combine(r.salt,salt);
+        r.salt = utils::keccak256(new_salt);
     }
 
     //player makes random hash after gaming
@@ -66,7 +67,6 @@ module suino::random{
         random_hash = utils::keccak256(random_hash);
         random.hash = random_hash;
         let random_number = utils::u64_from_vector(random_hash,epoch);
-        
         random_number
     }
 

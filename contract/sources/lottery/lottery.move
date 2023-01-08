@@ -80,6 +80,7 @@ module suino::lottery{
             jackpot_count:0,
             });
             lottery.round = lottery.round + 1;
+     
             return
         };
 
@@ -108,7 +109,7 @@ module suino::lottery{
         lottery.tickets =map::empty<vector<u8>,vector<address>>();
         lottery.prize = 0;
         lottery.round = lottery.round + 1;
-        core::lottery_zero(core)
+        core::set_lottery_zero(core);
     }
 
     //------------User-----------------

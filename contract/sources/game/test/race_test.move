@@ -101,9 +101,10 @@ module suino::race_test{
         };
 
     
-        next_tx(scenario,user6);
+        next_tx(scenario,user8);
         {
              balance_check(scenario,95_000);
+            
         };
       
         test::end(scenario_val);
@@ -125,7 +126,7 @@ module suino::race_test{
         next_tx(scenario,user);
         {   
             //only test
-            bet(scenario,7);
+            bet(scenario,8);
         };
      
         next_tx(scenario,owner);

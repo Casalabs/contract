@@ -4,14 +4,17 @@ module suino::core{
     use sui::object::{Self,UID};
     use sui::vec_set::{Self as set,VecSet};
     use sui::balance::{Self,Balance};
-    use sui::coin::{Self,Coin};
+    use sui::coin::{Self,Coin,TreasuryCap};
     use sui::sui::SUI;
     use sui::transfer;
     use sui::tx_context::{TxContext,sender};
     use sui::vec_map as map;
     use suino::nft::{Self,NFTState};
     use suino::random::{Self,Random};
-    
+    use suino::utils::{
+        calculate_percent_amount
+    };
+    use suino::sno::{Self,SNO};
     friend suino::flip;
     friend suino::race;
     friend suino::lottery;
@@ -28,6 +31,8 @@ module suino::core{
     const EWithdrawBig:u64 = 5;
     const ENotFriendContract:u64 = 6;
     const ENotSuinoGame:u64 = 7;
+
+
     struct Core has key{
         id:UID,
         name:String,
@@ -42,10 +47,16 @@ module suino::core{
         lock:bool,
         random:Random,
         random_fee:u64,
-        game_contract:vector<address>
+        game_contract:vector<address>,
+        sno_mint_amount:u64,
     }
 
     struct Ownership has key{
+        id:UID,
+        name:String,
+    }
+
+    struct RandomMaker has key{
         id:UID,
         name:String,
     }
@@ -68,14 +79,19 @@ module suino::core{
             random:random::create(),
             random_fee:10000,
             game_contract:vector::empty(),
+            sno_mint_amount:1,
         };
 
         let ownership = Ownership{
             id:object::new(ctx),
             name:string::utf8(b"Suino Core Ownership")
         };
-
+        let maker = RandomMaker{
+            id:object::new(ctx),
+            name:string::utf8(b"Suino Random Maker")
+        };
         transfer::transfer(ownership,sender(ctx));
+        transfer::transfer(maker,sender(ctx));
         transfer::share_object(core)
     }
 
@@ -101,29 +117,8 @@ module suino::core{
         core.lock = true;
     }
 
-    public(friend) entry fun add_owner(_:&Ownership,core:&mut Core,new_owner:address,ctx:&mut TxContext){
-        //owners size have limit 4
-        assert!(core.owners < 4,EMaxOwner);
-        let ownership = Ownership{
-            id:object::new(ctx),
-            name:string::utf8(b"Suino Core Ownership")
-        };
-        transfer::transfer(ownership,new_owner);
-        core.owners = core.owners + 1;
-    }
 
-    public(friend) entry fun sign(_:&Ownership,core:&mut Core,ctx:&mut TxContext){
-        let sign = &mut core.sign;
-        set::insert(sign,sender(ctx));
-        if (core.owners / set::size(&core.sign) == 1){
-            core.lock = false;
-            core.sign = set::empty();
-       };
-    }
-
-    public(friend) entry fun lock(_:&Ownership,core:&mut Core){
-        core.lock = true;
-    }
+ 
 
 
    public(friend)   entry fun set_gaming_fee_percent(_:&Ownership,core:&mut Core,percent:u8){
@@ -168,9 +163,10 @@ module suino::core{
         random::game_set_random(&mut core.random,ctx)
     }
 
-    entry fun set_random_salt(_:&Ownership,core:&mut Core,salt:vector<u8>){
+    entry fun set_random_salt(_:&RandomMaker,core:&mut Core,salt:vector<u8>){
         random::change_salt(&mut core.random,salt)
     }
+    
     entry fun set_random_fee(_:&Ownership,core:&mut Core,amount:u64){
         core.random_fee = amount;
     }
@@ -197,6 +193,17 @@ module suino::core{
         balance::split<SUI>(&mut core.reward_pool,amount)
     }
 
+    public(friend) fun fee_deduct_and_mint(core:&mut Core,cap:&mut TreasuryCap<SNO>,balance:Balance<SUI>,ctx:&mut TxContext):Balance<SUI>{
+        let fee_percent = get_gaming_fee_percent(core);
+        let fee_amt = calculate_percent_amount(balance::value(&balance),fee_percent); 
+
+        let fee = balance::split<SUI>(&mut balance,fee_amt);  
+        add_reward(core,fee);
+        sno::mint(cap,core.sno_mint_amount,ctx);
+        balance
+    }
+
+    
 
     //================suino game function =====================
     //Additional use of the following suino game
@@ -207,10 +214,8 @@ module suino::core{
    
 
     public fun game_add_pool<T:key>(core:&mut Core,game:&T,add_pool_balance:Balance<SUI>){
-        
         check_suino_game_contract(core,game);
         add_pool(core,add_pool_balance);
-   
     }
 
     public fun game_remove_pool<T:key>(core:&mut Core,game:&T,amount:u64):Balance<SUI>{
@@ -218,21 +223,60 @@ module suino::core{
         remove_pool(core,amount)
     }
 
-    public fun game_add_reward<T:key>(core:&mut Core,game:&T,add_reward_balance:Balance<SUI>){
+    public fun game_get_random_number<T:key>(core:&mut Core,game:&T,ctx:&mut TxContext):u64{
         check_suino_game_contract(core,game);
-        add_reward(core,add_reward_balance);
-    }
-
-    public(friend) fun game_get_random_number(core:&mut Core,ctx:&mut TxContext):u64{
         random::get_random_number(&mut core.random,ctx)
     }
-   
-   fun check_suino_game_contract<T:key>(core:&Core,game:&T){
-     assert!(vector::contains(&core.game_contract,&object::id_address(game)),ENotSuinoGame);
+
+    public fun game_add_lottery_amount<T:key>(core:&mut Core,game:&T,amount:u64){
+        check_suino_game_contract(core,game);
+        core.lottery_amount = core.lottery_amount + amount;
+    }
+
+
+    public fun game_fee_deduct_and_mint<T:key>(core:&mut Core,cap:&mut TreasuryCap<SNO>,game:&T,balance:Balance<SUI>,ctx:&mut TxContext):Balance<SUI>{
+        check_suino_game_contract(core,game);
+        let fee_percent = get_gaming_fee_percent(core);
+        let fee_amt = calculate_percent_amount(balance::value(&balance),fee_percent); 
+        let fee = balance::split<SUI>(&mut balance,fee_amt);  
+        add_reward(core,fee);
+        sno::mint(cap,core.sno_mint_amount,ctx);
+        balance
+    }
+
+
+    public fun check_suino_game_contract<T:key>(core:&Core,game:&T){
+     assert!(vector::contains(&get_game_contract(core),&object::id_address(game)),ENotSuinoGame);
    }
 
 
-   //----------state--------------
+
+    //=====================only owner=================
+    public(friend) entry fun add_owner(_:&Ownership,core:&mut Core,new_owner:address,ctx:&mut TxContext){
+        //owners size have limit 4
+        assert!(core.owners < 4,EMaxOwner);
+        let ownership = Ownership{
+            id:object::new(ctx),
+            name:string::utf8(b"Suino Core Ownership")
+        };
+        transfer::transfer(ownership,new_owner);
+        core.owners = core.owners + 1;
+    }
+
+    public(friend) entry fun sign(_:&Ownership,core:&mut Core,ctx:&mut TxContext){
+        let sign = &mut core.sign;
+        set::insert(sign,sender(ctx));
+        if (core.owners / set::size(&core.sign) == 1){
+            core.lock = false;
+            core.sign = set::empty();
+       };
+    }
+
+    public(friend) entry fun lock(_:&Ownership,core:&mut Core){
+        core.lock = true;
+    }
+
+   //==============state======================
     public fun get_pool_balance(core:&Core):u64{
         balance::value(&core.pool)
     }
@@ -262,13 +306,16 @@ module suino::core{
     public fun get_random_fee(core:&Core):u64{
         core.random_fee
     }
+    public fun get_game_contract(core:&Core):vector<address>{
+        core.game_contract
+    }
 
     //========Lottery======
     public(friend) fun add_lottery_amount(core:&mut Core,amount:u64){
         core.lottery_amount = core.lottery_amount + amount;
     }
 
-    public(friend) fun lottery_zero(core:&mut Core){
+    public(friend) fun set_lottery_zero(core:&mut Core){
         core.lottery_amount = 0;
     }
     public fun get_lottery_amount(core:&Core):u64{
@@ -303,6 +350,7 @@ module suino::core{
             random:random::create(),
             random_fee:10000,
             game_contract:vector::empty(),
+            sno_mint_amount:1,
 
         };
         let ownership = Ownership{
