@@ -30,7 +30,6 @@ module suino::flip{
         name:String,
         description:String,
         minimum_bet:u64,
-        
     }
     
     struct JackpotEvent has copy,drop{
@@ -93,7 +92,7 @@ module suino::flip{
         };
         
         //token mint
-        mint_coin(cap,1,ctx);
+        mint_coin(cap,bet_value_length,ctx);
 
 
         let (jackpot_amount,jackpot_value) = calculate_jackpot(core,bet_value,bet_amt,ctx);

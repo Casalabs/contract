@@ -10,7 +10,7 @@ module suino::race{
     use sui::tx_context::{TxContext,sender};
     use sui::event;
     use suino::core::{Self,Core,Ownership};
-    // use suino::player::{Self,Player};
+    
     use suino::game_utils::{
         fee_deduct,
         mint_coin,
@@ -65,7 +65,7 @@ module suino::race{
             bet_state:map::empty<u64,vector<address>>(),
             balance:balance::zero<SUI>(),
             minimum_bet:10000,
-            minimum_prize:100000,
+            minimum_prize:95000,
         };
         transfer::share_object(race);
     }
@@ -83,12 +83,10 @@ module suino::race{
         assert!(coin::value(coin) >= race.minimum_bet,ENotEnoughBalance);
         let coin_balance = coin::balance_mut(coin);
         let bet = balance::split(coin_balance,race.minimum_bet);
-        // player::count_up(player);
         fee_deduct(core,&mut bet);
         add_balance(race,bet);
         set_join_member(race,ctx);
         set_bet_state(race,bet_value,ctx);
-        // set_random(core,ctx);
 
         core::game_set_random(core,ctx);
          mint_coin(cap,1,ctx);
@@ -115,7 +113,7 @@ module suino::race{
         };
 
       
-        let balance = remove_all_balance(race);
+        let balance = remove_balance(race);
 
         //exsists_jackpot = false == no_jackpot
         let exsists_jackpot:bool = map::contains(&race.bet_state,&jackpot_value);
@@ -180,7 +178,7 @@ module suino::race{
         balance::join(&mut race.balance,balance);
     }
 
-    fun remove_all_balance(race:&mut Race):Balance<SUI>{
+    fun remove_balance(race:&mut Race):Balance<SUI>{
         let race_amt = get_balance(race);
         balance::split<SUI>(&mut race.balance,race_amt)
     }
@@ -228,7 +226,7 @@ module suino::race{
             bet_state:map::empty<u64,vector<address>>(),
             balance:balance::zero<SUI>(),
             minimum_bet:10000,
-            minimum_prize:100000,
+            minimum_prize:95000,
         };
         transfer::share_object(race);
     }

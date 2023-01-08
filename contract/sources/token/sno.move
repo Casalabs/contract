@@ -30,7 +30,7 @@ module suino::sno {
     
     }
 
-
+    
 
     public(friend) fun mint(
         cap: &mut TreasuryCap<SNO>,amount:u64,ctx: &mut TxContext
@@ -43,6 +43,14 @@ module suino::sno {
         cap: &mut TreasuryCap<SNO>, token: Coin<SNO>
     ) {
        balance::decrease_supply(coin::supply_mut(cap),coin::into_balance(token));
+    }
+
+    entry fun merge(self:&mut Coin<SNO>,token:Coin<SNO>){
+        coin::join(self,token);
+    }
+    entry fun split(self:&mut Coin<SNO>,amount:u64,ctx:&mut TxContext){
+        let new_coin = coin::split(self,amount,ctx);
+        transfer::transfer(new_coin,sender(ctx))
     }
 
     public(friend) fun burn_amount(cap:&mut TreasuryCap<SNO>,token:&mut Coin<SNO>,amount:u64,ctx:&mut TxContext){

@@ -5,10 +5,11 @@ module suino::test_lottery{
     use sui::coin::{Coin,TreasuryCap};
 
     use suino::lottery::{Self,Lottery};
-    // use suino::player::{Self,Player};
+    
     use suino::core::{Self,Core,Ownership};
     use suino::sno::{Self,SNO};
     use suino::test_utils::{balance_check};
+    
     struct TestToken has drop{}
     
     #[test]
@@ -73,8 +74,9 @@ module suino::test_lottery{
         {   
             let lottery = test::take_shared<Lottery>(scenario);
             // let player = test::take_from_sender<Player>(scenario);
-            //vector[7,5,4,7,2,0] is only test
-            let numbers = vector[vector[7,5,4,7,2,0]];
+            //vector[8,7,0,5,3,2] is only test
+                   
+            let numbers = vector[vector[8,7,0,5,3,2]];
             let cap = test::take_shared<TreasuryCap<SNO>>(scenario);
             let token = test::take_from_sender<Coin<SNO>>(scenario);
             lottery::buy_ticket(&mut lottery,&mut cap,&mut token,numbers,ctx(scenario));
@@ -85,13 +87,13 @@ module suino::test_lottery{
 
         next_tx(scenario,user2);
         {   
-            use std::debug;
+       
             let lottery = test::take_shared<Lottery>(scenario);
-            // let player = test::take_from_sender<Player>(scenario);
-            let numbers = vector[vector[7,5,4,7,2,0]];
+            
+            let numbers = vector[vector[8,7,0,5,3,2]];
             
             let cap = test::take_shared<TreasuryCap<SNO>>(scenario);
-            debug::print(&cap);
+            
             let token = test::take_from_sender<Coin<SNO>>(scenario);
             lottery::buy_ticket(&mut lottery,&mut cap,&mut token,numbers,ctx(scenario));
             test::return_to_sender(scenario,token);
@@ -111,10 +113,10 @@ module suino::test_lottery{
         {
             
             let lottery = test::take_shared<Lottery>(scenario);
+            
             let pool = test::take_shared<Core>(scenario);
             assert!(lottery::get_prize(&lottery) == 0,1);
             assert!(core::get_pool_balance(&pool) == 90000,1);
-            
             test::return_shared(pool); 
             test::return_shared(lottery);
         };

@@ -21,9 +21,6 @@ module suino::test_flip{
         next_tx(scenario,owner);
         {
             test_init(scenario);
-            //pool = 1000000
-            //user_balance = 10000
-            //minimum_bet = 10000
         };
 
         next_tx(scenario,user);
@@ -34,8 +31,8 @@ module suino::test_flip{
         //==============Win==============================
         next_tx(scenario,user);
         {   
-            //!! vector[1,1,1] = only test win from test case 
-            test_game(scenario,10000,vector[1,1,1]);
+            //!! vector[0,0,1] = only test win from test case 
+            test_game(scenario,10000,vector[0,0,1]);
         };
         
        //jackpot coin check
@@ -105,7 +102,7 @@ module suino::test_flip{
         next_tx(scenario,user);
         {   
             //[0,0,0] is only test case
-            test_game(scenario,10_000,vector[0,0,0]);
+            test_game(scenario,10_000,vector[0,0,1]);
         };
 
         //fail balance check
@@ -299,7 +296,6 @@ module suino::test_flip{
             sno::init_for_testing(ctx(scenario));
     }
     fun test_user_init(scenario:&mut Scenario,addr:address,amount:u64){
-        // player::test_create(ctx(scenario),10);
         coin_mint(scenario,addr,amount);
     }
 

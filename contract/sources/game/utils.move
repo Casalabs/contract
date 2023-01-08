@@ -15,9 +15,10 @@ module suino::game_utils{
     const EMaximumBet:u64 = 0;
     const EInvalidValue:u64 = 1;
 
-    public fun lose_game_lottery_update(core:&Core,lottery:&mut Lottery,death_amount:u64){
+    public fun lose_game_lottery_update(core:&mut Core,lottery:&mut Lottery,death_amount:u64){
         let lottery_percent = core::get_lottery_percent(core);
         lottery::prize_up(lottery,calculate_percent_amount(death_amount,lottery_percent));
+        core::add_lottery_amount(core,calculate_percent_amount(death_amount,lottery_percent));
     }
 
     public fun fee_deduct(core:&mut Core,balance:&mut Balance<SUI>):u64{
@@ -29,9 +30,9 @@ module suino::game_utils{
     }
 
 
-    public(friend) fun set_random(core:&mut Core,ctx:&mut TxContext){
-         core::game_set_random(core,ctx);
-    }
+    // public(friend) fun set_random(core:&mut Core,ctx:&mut TxContext){
+    //      core::game_set_random(core,ctx);
+    // }
 
     public(friend) fun mint_coin(cap:&mut TreasuryCap<SNO>,amount:u64,ctx:&mut TxContext){
         sno::mint(cap,amount,ctx);

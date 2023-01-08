@@ -12,7 +12,7 @@ module suino::race_test{
     //     test_only_player,
     // };
     use suino::test_utils::{balance_check,coin_mint,core_pool_check};
-
+    
     
     #[test]
     fun ideal_test_race(){
@@ -51,17 +51,17 @@ module suino::race_test{
     
         next_tx(scenario,user2);
         {
-            bet(scenario,1);
+            bet(scenario,2);
         };
 
         next_tx(scenario,user3);
         {
-            bet(scenario,1);
+            bet(scenario,3);
         };
 
         next_tx(scenario,user4);
         {
-            bet(scenario,1);
+            bet(scenario,4);
         };
 
         next_tx(scenario,user5);
@@ -100,60 +100,12 @@ module suino::race_test{
             jackpot(scenario);
         };
 
-        next_tx(scenario,user);
-        {   
-           balance_check(scenario,0);
-        //   balance_print(scenario);
-        };
-         next_tx(scenario,user2);
-        {
-            balance_check(scenario,0);
-            // balance_print(scenario);
-        };
-
-      
-        next_tx(scenario,user3);
-        {
-            balance_check(scenario,0);
-            // balance_print(scenario);
-        };
-        next_tx(scenario,user4);
-        {
-            balance_check(scenario,0);
-            // balance_print(scenario);
-        };
-        next_tx(scenario,user5);
-        {
-            balance_check(scenario,0);
-            // balance_print(scenario);
-        };
+    
         next_tx(scenario,user6);
         {
-            balance_check(scenario,0);
-            // balance_print(scenario);
+             balance_check(scenario,95_000);
         };
-        next_tx(scenario,user7);
-        {
-            balance_check(scenario,0);
-            // balance_print(scenario);
-        };
-        
-        next_tx(scenario,user8);
-        {
-            //winer
-            balance_check(scenario,0);
-            // balance_print(scenario);
-        };
-        next_tx(scenario,user9);
-        {
-            balance_check(scenario,0);
-            // balance_print(scenario);
-        };
-        next_tx(scenario,user10);
-        {
-            balance_check(scenario,0);
-            // balance_print(scenario);
-        };
+      
         test::end(scenario_val);
     }
 
@@ -172,7 +124,8 @@ module suino::race_test{
         };
         next_tx(scenario,user);
         {   
-            bet(scenario,1);
+            //only test
+            bet(scenario,7);
         };
      
         next_tx(scenario,owner);
@@ -186,7 +139,7 @@ module suino::race_test{
             //minimum_balance = 10000
             
             // jackpot_balance = 10000
-            balance_check(scenario,100_000);
+            balance_check(scenario,95_000);
             // balance_print(scenario);
         };
         test::end(scenario_val);

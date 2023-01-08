@@ -60,12 +60,13 @@ module suino::random{
 
 
     public(friend) fun get_random_number(random:&mut Random,ctx:&mut TxContext):u64{
+
         let epoch = tx_context::epoch(ctx);
         let random_hash = utils::vector_combine(random.salt,random.hash);
-        
-        let random_number = utils::u64_from_vector(random_hash,epoch);
         random_hash = utils::keccak256(random_hash);
         random.hash = random_hash;
+        let random_number = utils::u64_from_vector(random_hash,epoch);
+        
         random_number
     }
 
