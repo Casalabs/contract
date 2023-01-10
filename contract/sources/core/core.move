@@ -209,11 +209,9 @@ module suino::core{
 
 
     //=============random=====================
-    public(friend) fun get_random_number(core:&mut Core,ctx:&mut TxContext):u64{
-        random::get_random_number(&mut core.random,ctx)
-    }
 
-    public fun get_random_number_customer(core:&mut Core,coin:Coin<SUI>,ctx:&mut TxContext):u64{
+
+    public fun buy_random_number(core:&mut Core,coin:Coin<SUI>,ctx:&mut TxContext):u64{
         assert!(coin::value(&coin) == core.random_fee,0);
         let random_number = random::get_random_number(&mut core.random,ctx);
         
@@ -225,7 +223,9 @@ module suino::core{
         random::game_set_random(&mut core.random,ctx)
     }
 
-
+    public(friend) fun get_random_number(core:&mut Core,ctx:&mut TxContext):u64{
+        random::get_random_number(&mut core.random,ctx)
+    }
 
 
     //-----------Pool ----------------
