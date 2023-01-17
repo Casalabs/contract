@@ -9,6 +9,7 @@ module suino::core{
     use sui::transfer;
     use sui::tx_context::{TxContext,sender};
     use sui::vec_map as map;
+    use sui::event;
     use suino::nft::{Self,NFTState,NFT};
     use suino::random::{Self,Random};
     use suino::utils::{
@@ -62,14 +63,11 @@ module suino::core{
         count:u64,
     }
 
-    entry fun create_maker(ctx:&mut TxContext){
-        let maker = RandomMaker{
-            id:object::new(ctx),
-            name:string::utf8(b"Suino Random Maker"),
-            count:0,
-        };
-        transfer::transfer(maker,sender(ctx));
+    struct SetSaltEvent has copy,drop{
+        maker:address,
+        salt:vector<u8>,
     }
+    
 
     // -----init-------
     fun init(ctx:&mut TxContext){
@@ -192,24 +190,38 @@ module suino::core{
     entry fun lock(_:&Ownership,core:&mut Core){
         core.lock = true;
     }
+    
 
     //==================Maker======================
-    entry fun set_random_salt(_:&NFT,maker:&mut RandomMaker,core:&mut Core,salt:vector<u8>){
+    entry fun create_maker(ctx:&mut TxContext){
+        let maker = RandomMaker{
+            id:object::new(ctx),
+            name:string::utf8(b"Suino Random Maker"),
+            count:0,
+        };
+        transfer::transfer(maker,sender(ctx));
+    }
+
+    entry fun set_random_salt(_:&NFT,maker:&mut RandomMaker,core:&mut Core,salt:vector<u8>,ctx:&mut TxContext){
         random::change_salt(&mut core.random,salt);
         maker.count = maker.count + 1;
+        event::emit(SetSaltEvent{
+            maker:sender(ctx),
+            salt:salt,
+        });
     }
   
     entry fun random_maker_mint_sno(maker:&mut RandomMaker,cap:&mut TreasuryCap<SNO>,ctx:&mut TxContext){
-        assert!(maker.count >= 10,EMakerLessTenCount);
-        let mint_amount = maker.count / 10;
-        maker.count = maker.count - mint_amount * 10 ;
+        assert!(maker.count >= 1000,EMakerLessTenCount);
+        let mint_amount = maker.count / 1000;
+        maker.count = maker.count - mint_amount * 1000 ;
         sno::mint(cap,mint_amount,ctx);
     }
 
 
 
     //=============random=====================
-
+    
 
     public fun buy_random_number(core:&mut Core,coin:Coin<SUI>,ctx:&mut TxContext):u64{
         assert!(coin::value(&coin) == core.random_fee,0);
@@ -266,10 +278,6 @@ module suino::core{
 
     //================suino game function =====================
     //Additional use of the following suino game
-
-   
-   
-
     public fun game_add_pool<T:key>(core:&mut Core,game:&T,add_pool_balance:Balance<SUI>){
         check_suino_game_contract(core,game);
         add_pool(core,add_pool_balance);

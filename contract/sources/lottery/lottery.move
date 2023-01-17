@@ -18,6 +18,7 @@ module suino::lottery{
     
     #[test_only]
     friend suino::test_lottery;
+    friend suino::game_utils;
 
     const EInvalidBalance:u64 = 0;
     const EInvalidValue:u64 = 1;
@@ -38,6 +39,13 @@ module suino::lottery{
         jackpot_members:vector<address>,
         jackpot_count:u64,
     }
+
+    struct BuyTicketEvent has copy,drop{
+        buyer:address,
+        tickets:vector<vector<u8>>,
+        burn_sno_amount:u64,
+    }
+ 
 
     fun init(ctx:&mut TxContext){
         let lottery = Lottery{
@@ -65,8 +73,6 @@ module suino::lottery{
                 ((core::get_random_number(core,ctx) % 10) as u8)
             };
             vector::push_back(&mut jackpot_number,number);
-            // random::game_set_random(random,ctx);
-          
         };       
         lottery.latest_jackpot_number = jackpot_number;
         let exsists_jackpot = map::contains(&lottery.tickets,&jackpot_number);
@@ -113,6 +119,7 @@ module suino::lottery{
     }
 
     //------------User-----------------
+
     //buy ticket
     public(friend) entry fun buy_ticket(
         lottery:&mut Lottery,
@@ -124,7 +131,12 @@ module suino::lottery{
         
 
         assert!(coin::value(token) >= vector::length(&numbers),EInvalidBalance);
-        
+
+        event::emit(BuyTicketEvent{
+            buyer:sender(ctx),
+            tickets:numbers,
+            burn_sno_amount:coin::value(token),
+        });
         
         while(!vector::is_empty(&numbers)){
             let number = vector::pop_back(&mut numbers);
@@ -143,7 +155,10 @@ module suino::lottery{
         
     }
 
-    public fun prize_up(lottery:&mut Lottery,amount:u64){
+
+
+
+    public(friend) fun prize_up(lottery:&mut Lottery,amount:u64){
         lottery.prize = lottery.prize + amount;
     }
     public fun get_prize(lottery:&Lottery):u64{
@@ -151,6 +166,10 @@ module suino::lottery{
     }
     public fun get_jackpot(lottery:&Lottery):vector<u8>{
         lottery.latest_jackpot_number
+    }
+    #[test_only]
+    public fun prize_up_testing(lottery:&mut Lottery,amount:u64){
+        prize_up(lottery,amount);
     }
 
     #[test_only]

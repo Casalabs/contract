@@ -48,7 +48,6 @@ module suino::flip{
             name:string::utf8(b"Suino Coin Flip"),
             description:string::utf8(b"can get at twice to octuple"),
             minimum_bet:10000,
-            
         };
         transfer::share_object(flip);
     }
@@ -122,7 +121,6 @@ module suino::flip{
        
 
     fun calculate_jackpot(core:&mut Core,bet_value:vector<u64>,bet_amount:u64,ctx:&mut TxContext):(u64,vector<u64>){
-        
         //reverse because vector only pop_back [0,0,1] -> [1,0,0]
         vector::reverse(&mut bet_value);
         let jackpot_value = vector::empty();
@@ -133,7 +131,16 @@ module suino::flip{
             let compare_number = vector::pop_back(&mut bet_value);
             assert!(compare_number == 0 || compare_number == 1,EInvalidValue);
             let jackpot_number = core::get_random_number(core,ctx) % 2;
+       
+            
+        
+            
+
+
             vector::push_back(&mut jackpot_value,jackpot_number);
+        
+
+
             if (jackpot_number != compare_number){
                     jackpot_amount = 0;
                     break

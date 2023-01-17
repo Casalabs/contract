@@ -18,20 +18,7 @@ module suino::random{
         salt:vector<u8>, //It keeps changing
     }
     
-    // fun init(ctx:&mut TxContext){
-        
-    //     let salt = b"casino";
-    //     let hash = ecdsa::keccak256(&b"suino");
-    //     let random = Random{
-    //         id:object::new(ctx),
-    //         salt,
-    //         hash,
-    //     };
-    //     transfer::share_object(random);
-    // }
-    // public entry fun set_random_player(r:&mut Random,salt:vector<u8>,ctx:&mut TxContext){
 
-    // }
 
     public(friend) fun create():Random{
         let salt = b"casino";
@@ -44,7 +31,6 @@ module suino::random{
     }    
     //only owner
     public(friend) fun change_salt(r:&mut Random,salt:vector<u8>){
-
         r.salt = utils::vector_combine_hasing(r.salt,salt);
     }
 
@@ -57,13 +43,11 @@ module suino::random{
     }
 
 
-  
-
-
     public(friend) fun get_random_number(random:&mut Random,ctx:&mut TxContext):u64{
 
         let epoch = tx_context::epoch(ctx);
         let random_hash =  utils::vector_combine_hasing(random.salt,random.hash);
+       
         random.hash = random_hash;
         let random_number = utils::u64_from_vector(random_hash,epoch);
         random_number

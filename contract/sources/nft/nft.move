@@ -1,47 +1,58 @@
 module suino::nft{
-    
+    use std::vector;
     use std::string::{Self,String};
     use sui::url::{Self,Url};
-    use sui::tx_context::{Self,TxContext,sender};
-    use sui::vec_map::{Self,VecMap};
+    use sui::tx_context::{TxContext,sender};
+    use sui::vec_map::{Self as map,VecMap};
     use sui::transfer;
-    use sui::balance;
+    use sui::balance::{Self,Balance};
     use sui::object::{Self,ID,UID};
     use sui::sui::SUI;
     use sui::event;
-    use sui::dynamic_field;
     use sui::coin::{Self,Coin};
-    use suino::utils::{
-        calculate_percent_amount
-    };
+    friend suino::market;
+    
+    const ENotEnoughBalance:u64 = 0;
+    const ENotWhiteList:u64 = 1;
+    const ENotEqualLength:u64 = 2;
+    const ENotInvalidCoinBalance:u64 = 3;
+    const ENotOwner:u64 = 4;
     
 
-       // For when amount paid does not match the expected.
-    const EAmountIncorrect: u64 = 0;
+    // const URL:vector<u8> = b"ipfs/suino/";
+    struct Attribute has store,copy,drop{
+        name:String,
+        value:String,
+    }
 
-    // For when someone tries to delist without ownership.
-    const ENotOwner: u64 = 1;
-    
-    const ENotEnoughBalance:u64 = 2;
-    
     struct NFT has key, store {
         id: UID,
-        /// Name for the token
         name: String,
-        /// Description of the token
-        token_id:u64,
         description:String,
-        /// URL for the token
         url: Url,
-        // TODO: allow custom attributes
+        attributes:vector<Attribute>
     }
+    struct NFTData has store,drop,copy{
+        name: String,
+        description:String,
+        url: Url,
+        attributes:vector<Attribute>
+    }
+    
     struct NFTState has key{
         id:UID,
         name:String,
         description:String,
         owner:address,
         holder:VecMap<ID,address>,
-        fee:u64,
+        creator_fee:u64,
+        mint_balance:u64,
+        // limit:u64
+    }
+    struct NFTMintingData has key{
+        id:UID,
+        white_list:vector<address>,
+        mint_nft:vector<NFTData>, 
     }
 
     struct Ownership has key{
@@ -50,97 +61,156 @@ module suino::nft{
     }
 
     struct MintNFTEvent has copy, drop {
-        // The Object ID of the NFT
         object_id: ID,
-        // The creator of the NFT
         creator: address,
-        // The name of the NFT
         name: String,
-    }
-
-    //marketplace
-    struct Marketplace has key {
-        id: UID,
-        name:String,
         description:String,
-        fee_percent:u8,
-     
+        url:Url,
+        attributes:vector<Attribute>,
     }
-
-    
-    /// A single listing which contains the listed item and its price in [`Coin<C>`].
-    struct Listing has store {
-        item: NFT,
-        ask: u64, // Coin<C>
-        owner: address,
+    struct TransferEvent has copy,drop{
+        object_id: ID,
+        from: address,
+        to: address,
     }
+    struct ClaimEvent has copy,drop{
+        object_id:ID,
+        owner:address,
+    } 
 
-    //depoly share object marketplace and state
+    //depoly state share object 
     fun init(ctx:&mut TxContext){
         let state = NFTState{
             id:object::new(ctx),
             owner:sender(ctx),
-            holder:vec_map::empty<ID,address>(),
-            fee:10000,
+            holder:map::empty<ID,address>(),
+            creator_fee:10000,
             name:string::utf8(b"NFT State"),
-            description:string::utf8(b"Suino NFT hold Tracking"),
+            description:string::utf8(b"Suino NFT holder Traking"),
+            mint_balance:10000,
+            // limit:1000,
         };
-       
-        let marketplace = Marketplace { 
+        let data = NFTMintingData{
             id:object::new(ctx),
-            name:string::utf8(b"Suino NFT Marketplace"),
-            description:string::utf8(b"NFT Collection Market"),
-            fee_percent:5,
-         };
+            white_list:vector::empty(),
+            mint_nft:vector::empty(),
+        };
         let ownership = Ownership{
             id:object::new(ctx),
             name:string::utf8(b"Suino NFT Ownership")
         };
         transfer::transfer(ownership,sender(ctx));
-        transfer::share_object(marketplace);
+        transfer::share_object(data);
         transfer::share_object(state);
     }
 
-    //-------Entry---------
+    //-------Owner---------
+    entry fun whitelist_setting(_:&Ownership,data:&mut NFTMintingData,white_list:vector<address>){
+        data.white_list = white_list;
+    }
 
-    public entry fun mint(
+   
+    entry fun set_nft_data(
         _:&Ownership,
+        data:&mut NFTMintingData,
+        url:vector<u8>,
+        name_list:vector<vector<u8>>,
+        value_list:vector<vector<u8>>,
+        ){
+        assert!(vector::length(&name_list) == vector::length(&value_list),ENotEqualLength);
+        let nft = NFTData {
+                // id:object::new(ctx),
+                name: string::utf8(b"suino nft"),
+                description: string::utf8(b"suino game reward nft"),
+                url: url::new_unsafe_from_bytes(url),
+                attributes:vector::empty<Attribute>()
+        };
+    
+        while(!vector::is_empty(&name_list)){  
+            let attribute= Attribute{
+                name:string::utf8(vector::pop_back(&mut name_list)),
+                value:string::utf8(vector::pop_back(&mut value_list)),
+            };
+            vector::push_back(&mut nft.attributes,attribute);
+        };
+
+        vector::push_back(&mut data.mint_nft,nft);
+    }
+
+
+  
+    entry fun mint(
         state: &mut NFTState,
-        name: vector<u8>,
-        description: vector<u8>,
-        url: vector<u8>,
+        data:&mut NFTMintingData,
+        coin:&mut Coin<SUI>,
         ctx: &mut TxContext
     ) {
         let sender = sender(ctx);
+        assert!(vector::contains(&data.white_list,&sender),ENotWhiteList);
+        assert!(coin::value(coin) >= state.mint_balance,ENotInvalidCoinBalance);
+        
         let id = object::new(ctx);
-        let nft = NFT {
-            id,
-            name: string::utf8(name),
-            token_id:total_supply(state) + 1,
-            description: string::utf8(description),
-            url: url::new_unsafe_from_bytes(url)
+    
+        let random:u8={
+            let random;
+            if (vector::length(&data.mint_nft) < 10){
+                random = vector::pop_back(&mut object::uid_to_bytes(&id)) % 2;
+            }else{
+                random = vector::pop_back(&mut object::uid_to_bytes(&id)) % 10 ;
+            };
+            random
         };
 
-        vec_map::insert(&mut state.holder,object::uid_to_inner(&nft.id),sender);
 
+       let nft_data:NFTData = vector::swap_remove(&mut data.mint_nft,(random as u64));
+
+       let nft = NFT{
+            id,
+            name:nft_data.name,
+            description:nft_data.description,
+            url:nft_data.url,
+            attributes:nft_data.attributes
+       };
+        
+       
+        //white list remove
+        {
+            let (_,index) = vector::index_of(&data.white_list,&sender);
+            vector::remove(&mut data.white_list,index);
+        };
+        
+
+        //holder set
+        map::insert(&mut state.holder,object::uid_to_inner(&nft.id),sender);
+        
         event::emit(MintNFTEvent {
             object_id: object::uid_to_inner(&nft.id),
             creator: sender,
             name: nft.name,
+            description:nft.description,
+            url:nft.url,
+            attributes:nft.attributes,
         });
-        transfer::transfer(nft, sender);
+
+        
+        let mint_balance:Balance<SUI> = balance::split(coin::balance_mut(coin), state.mint_balance);
+        transfer::transfer(coin::from_balance(mint_balance,ctx),state.owner);
+        transfer::transfer(nft,sender);
     }
+ 
 
-
-    entry fun claim_fee_membership(
+    public entry fun claim_fee_membership(
         state:&mut NFTState,
         nft:&NFT,
         coin:&mut Coin<SUI>,
         ctx:&mut TxContext){
-
         fee_deduct(state,coin,ctx);
         let nft_id = object::id(nft);
         set_state_nft_holder(state,nft_id,sender(ctx));
+        event::emit(ClaimEvent{
+            object_id:nft_id,
+            owner:sender(ctx)
+        })
     }
  
 
@@ -151,147 +221,75 @@ module suino::nft{
         recipent:address,
         ctx:&mut TxContext,
        ){
-     
         fee_deduct(state,coin,ctx);
-        let nft_id = object::id(&nft);
+        let nft_id:ID = object::id(&nft);
         set_state_nft_holder(state,nft_id,recipent);
         transfer::transfer(nft,recipent);
+        event::emit(TransferEvent{
+            object_id:nft_id,
+            from:sender(ctx),
+            to:recipent,
+        })
     }
     
-    // Market place
-    // List an item at the Marketplace.
-    public entry fun list(
-        marketplace: &mut Marketplace,
-        item: NFT,
-        ask: u64,
-        ctx: &mut TxContext
-    ) {
-        let item_id = object::id(&item);
-        let listing = Listing {
-            item,
-            ask,
-            owner: tx_context::sender(ctx),
-        };
-        dynamic_field::add(&mut marketplace.id, item_id, listing);
-    }
 
-        /// Call [`delist`] and transfer item to the sender.
-    public entry fun delist_and_take(
-        marketplace: &mut Marketplace,
-        item_id: ID,
-        ctx: &mut TxContext
-    ) {
-        let item = delist(marketplace, item_id, ctx);
-        transfer::transfer(item, tx_context::sender(ctx));
-    }
-
-
-    public fun delist(
-        marketplace: &mut Marketplace,
-        item_id: ID,
-        ctx: &mut TxContext
-    ): NFT {
-        let Listing { item, ask: _, owner } =
-        dynamic_field::remove(&mut marketplace.id, item_id);
-
-        assert!(tx_context::sender(ctx) == owner, ENotOwner);
-
-        item
-    }
-
-
-    
-    public entry fun buy_and_take(
-        marketplace: &mut Marketplace,
-        state:&mut NFTState,
-        item_id: ID,
-        paid: Coin<SUI>,
-        ctx: &mut TxContext
-    ) {
-        
-        let Listing{ item, ask, owner } =
-        dynamic_field::remove(&mut marketplace.id, item_id);
-        assert!(ask == coin::value(&paid), EAmountIncorrect);
-
-
-        let fee_amt = calculate_percent_amount(coin::value(&paid),get_fee_percent(marketplace));
-        let fee_coin = coin::split(&mut paid,fee_amt,ctx);
-        transfer::transfer(fee_coin,get_owner(state));
-
-        
-        transfer::transfer(paid, owner);
-     
-        // let item = buy<C>(marketplace,state,item_id, paid,ctx);
-        set_state_nft_holder(state, object::id(&item),sender(ctx));
-        transfer::transfer(item, sender(ctx))
-    }
-   
-
-
-
-    //===============NFT================
-    /// Get the NFT's `name`
-    public fun name(nft: &NFT): &string::String {
-        &nft.name
-    }
-
-    /// Get the NFT's `description`
-    public fun description(nft: &NFT): &string::String {
-        &nft.description
-    }
-
-    /// Get the NFT's `url`
-    public fun url(nft: &NFT): &Url {
-        &nft.url
-    }
-
-  
 
     //===========NFTState====================
     entry fun set_owner(_:&Ownership,state:&mut NFTState,new_owner:address,ctx:&mut TxContext){
         //only owner
-        assert!(sender(ctx) == get_owner(state),0);
+        assert!(sender(ctx) == get_owner(state),ENotOwner);
 
         state.owner = new_owner;
     }
 
 
-    entry fun set_fee(_:&Ownership,state:&mut NFTState,amount:u64,ctx:&mut TxContext){
-        assert!(sender(ctx) == get_owner(state),0);
-        state.fee = amount;
+    entry fun set_creator_fee(_:&Ownership,state:&mut NFTState,amount:u64,ctx:&mut TxContext){
+        assert!(sender(ctx) == get_owner(state),ENotOwner);
+        state.creator_fee = amount;
     }
 
        
     public(friend) fun set_state_nft_holder(state:&mut NFTState,nft_id:ID,recipent:address){
-        vec_map::remove<ID,address>(&mut state.holder,&nft_id);
-        vec_map::insert<ID,address>(&mut state.holder,nft_id,recipent);
+        map::remove<ID,address>(&mut state.holder,&nft_id);
+        map::insert<ID,address>(&mut state.holder,nft_id,recipent);
     }
 
+    //====NFTData===========
+    public fun get_white_list(data:&NFTMintingData):vector<address>{
+        data.white_list
+    }
+
+    //==========NFTState===============
     
     public fun get_owner(state:&NFTState):address{
         state.owner
     }
 
     public fun get_holder(state:&NFTState,id:&ID):address{
-        let holder_point = vec_map::get(&state.holder,id);
+        let holder_point = map::get(&state.holder,id);
         *holder_point
     }
+
     public fun get_fee(state:&NFTState):u64{
-        state.fee
+        state.creator_fee
     }
     public fun total_supply(state:&NFTState):u64{
-        vec_map::size(&state.holder)
+        map::size(&state.holder)
     }
 
     public fun get_holders(state:&NFTState):VecMap<ID,address>{
         state.holder
     }
 
-    //============SuinoMarketPlace=====================
-    public fun get_fee_percent(market:&Marketplace):u8{
-        market.fee_percent
-    }
 
+    //==========NFT==================
+    public fun get_attributes(nft:&NFT):vector<Attribute>{
+        nft.attributes
+    }
+    public fun get_url(nft:&NFT):Url{
+        nft.url
+    }
+    
     
     //==============Utils===========================
     fun fee_deduct(state:&mut NFTState,coin:&mut Coin<SUI>,ctx:&mut TxContext){
@@ -302,45 +300,62 @@ module suino::nft{
         transfer::transfer(fee_coin,get_owner(state));
     }
     
+
+
+    //================test only========================
     #[test_only]
     public fun init_for_testing(ctx:&mut TxContext){
-        let state = NFTState{
-            id:object::new(ctx),
-            name:string::utf8(b"NFT State"),
-            description:string::utf8(b"Suino NFT hold Tracking"),
-            owner:tx_context::sender(ctx),
-            holder:vec_map::empty<ID,address>(),
-            fee:100000,
-        };
-       
-        let marketplace = Marketplace { 
-            id:object::new(ctx),
-            name:string::utf8(b"Suino NFT Marketplace"),
-            description:string::utf8(b"NFT Collection Market"),
-            fee_percent:5,
-         };
-         let ownership = Ownership{
-            id:object::new(ctx),
-            name:string::utf8(b"Suino NFT Ownership")
-         };
-        transfer::transfer(ownership,sender(ctx));
-        transfer::share_object(marketplace);
-        transfer::share_object(state);
+        init(ctx);
     }
+
     #[test_only]
-    public fun test_mint_nft(state:&mut NFTState,recipent:address,ctx:&mut TxContext){
+    public fun mint_for_testing(state: &mut NFTState,data:&mut NFTMintingData,coin:&mut Coin<SUI>,ctx: &mut TxContext){
+        mint(state,data,coin,ctx);
+    }
+
+    #[test_only]
+    public fun test_mint(state:&mut NFTState,ctx:&mut TxContext){
       let id = object::new(ctx);
       let nft = NFT{
-        id,
-        name:string::utf8(b"suino") ,
-        token_id:1,
-        description:string::utf8(b"suino"),
-        url:url::new_unsafe_from_bytes(b"suino")
+            id,
+            name:string::utf8(b"suino") ,
+            description:string::utf8(b"suino"),
+            url:url::new_unsafe_from_bytes(b"suino"),
+            attributes:vector::empty(),
       };
-      vec_map::insert(&mut state.holder,object::uid_to_inner(&nft.id),recipent);
+      map::insert(&mut state.holder,object::uid_to_inner(&nft.id),sender(ctx));
 
-      transfer::transfer(nft,recipent);
+      transfer::transfer(nft,sender(ctx));
     }
 
+    #[test_only]
+    public fun set_state_nft_holder_testing(state:&mut NFTState,nft_id:ID,recipent:address){
+        set_state_nft_holder(state,nft_id,recipent);
+    }
+
+       
+    #[test_only]
+    public fun whitelist_setting_testing(ownership:&Ownership,data:&mut NFTMintingData,white_list:vector<address>){
+        whitelist_setting(ownership,data,white_list);
+    }
+
+    #[test_only]
+    public fun set_nft_data_testing(
+        ownership:&Ownership,
+        data:&mut NFTMintingData,
+        url:vector<u8>,
+        name_list:vector<vector<u8>>,
+        value_list:vector<vector<u8>>,
+    ){
+        set_nft_data(ownership,data,url,name_list,value_list);
+    }
+    #[test_only]
+    public fun create_attribute_testing(name:vector<u8>,value:vector<u8>):Attribute{
+        let attribute = Attribute{
+            name:string::utf8(name),
+            value:string::utf8(value),
+        };
+        attribute
+    }
 }
 

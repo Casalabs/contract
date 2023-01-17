@@ -115,7 +115,7 @@ module suino::market_test{
     fun mint(scenario:&mut Scenario){
         let state = test::take_shared<NFTState>(scenario);
         
-        nft::mint_for_testing(
+        nft::test_mint(
             &mut state,
             ctx(scenario)
         );

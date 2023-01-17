@@ -4,7 +4,7 @@ module suino::market{
     use sui::transfer;
     use sui::object::{Self,ID,UID};
     use sui::sui::SUI;
-    // use sui::event;
+    use sui::event;
     use sui::dynamic_field;
     use sui::coin::{Self,Coin};
     use suino::utils::{
@@ -22,7 +22,29 @@ module suino::market{
         description:String,
         fee_percent:u8,
     }
+   
+    struct Listing has store {
+        item: NFT,
+        ask: u64, 
+        owner: address,
+    }
 
+    struct ListEvent has copy,drop{
+        item:ID,
+        ask:u64,
+        owner:address
+    }
+    struct DeListEvent has copy,drop{
+        item:ID,
+    }
+    struct BuyEvent has copy,drop{
+        item:ID,
+        seller:address,
+        amount:u64,
+        buyer:address
+    }
+
+    
     fun init(ctx:&mut TxContext){
         let marketplace = Marketplace { 
             id:object::new(ctx),
@@ -32,12 +54,7 @@ module suino::market{
         };
         transfer::share_object(marketplace);
     }    
-    /// A single listing which contains the listed item and its price in [`Coin<C>`].
-    struct Listing has store {
-        item: NFT,
-        ask: u64, // Coin<C>
-        owner: address,
-    }
+
 
     // Market place
     // List an item at the Marketplace.
@@ -51,9 +68,15 @@ module suino::market{
         let listing = Listing {
             item,
             ask,
-            owner: tx_context::sender(ctx),
+            owner: sender(ctx),
         };
         dynamic_field::add(&mut marketplace.id, item_id, listing);
+        event::emit(ListEvent{
+            item:item_id,
+            ask,
+            owner:sender(ctx),
+        })
+
     }
 
         /// Call [`delist`] and transfer item to the sender.
@@ -64,6 +87,9 @@ module suino::market{
     ) {
         let item = delist(marketplace, item_id, ctx);
         transfer::transfer(item, tx_context::sender(ctx));
+        event::emit(DeListEvent{
+            item:item_id,
+        })
     }
 
 
@@ -81,7 +107,7 @@ module suino::market{
     }
 
 
-    
+
     public entry fun buy_and_take(
         marketplace: &mut Marketplace,
         state:&mut NFTState,
@@ -100,10 +126,16 @@ module suino::market{
         
         
         transfer::transfer(paid, owner);
-     
+
         // let item = buy<C>(marketplace,state,item_id, paid,ctx);
         nft::set_state_nft_holder(state, object::id(&item),sender(ctx));
-        transfer::transfer(item, sender(ctx))
+        transfer::transfer(item, sender(ctx));
+        event::emit(BuyEvent{
+            item:item_id,
+            seller:owner,
+            amount:ask,
+            buyer:sender(ctx)
+        })
     }
     
 

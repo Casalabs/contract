@@ -41,10 +41,6 @@ module suino::utils{
             vector::push_back(&mut vector1,vector::pop_back(&mut vector2));
         };
         ecdsa_k1::keccak256(&vector1)
-        
     }
- 
-   
-
 }
  

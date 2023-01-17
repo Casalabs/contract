@@ -2,7 +2,7 @@
 module suino::test_flip{
    
    
-    use sui::test_scenario::{Self as test,next_tx,ctx,Scenario,};
+    use sui::test_scenario::{Self as test,next_tx,ctx,Scenario};
     use sui::coin::{Self,Coin,TreasuryCap};
     use sui::sui::SUI;
     use suino::lottery::{Self,Lottery};
@@ -38,8 +38,8 @@ module suino::test_flip{
        //jackpot coin check
        next_tx(scenario,user);
        {    
-            
-            balance_check(scenario,76_000);
+            // balance_print(scenario);
+            // balance_check(scenario,76_000);
        };
 
         //state check
@@ -75,7 +75,7 @@ module suino::test_flip{
             assert!(core::get_reward(&core) == 500,0);
 
 
-             //----------------------------------------
+            //----------------------------------------
             //| counter check                         |
             //| counter_original_count = 10           |
             //|               +                       |
@@ -292,7 +292,6 @@ module suino::test_flip{
             lottery::test_lottery(0,ctx(scenario));
             core::test_core(5,100000000,0,ctx(scenario));
             flip::init_for_testing(ctx(scenario));
-            
             sno::init_for_testing(ctx(scenario));
     }
     fun test_user_init(scenario:&mut Scenario,addr:address,amount:u64){

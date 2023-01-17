@@ -35,7 +35,7 @@ module suino::core_test{
           
             let balance = balance::create_for_testing<SUI>(10_000_000);
 
-            core::add_pool(&mut core,balance);
+            core::add_pool_testing(&mut core,balance);
            
             assert!(core::get_pool_balance(&core) == 10_000_000 ,1);
 
@@ -47,7 +47,7 @@ module suino::core_test{
         next_tx(scenario,user);
         {
             let core = test::take_shared<Core>(scenario);
-            let remove_value = core::remove_pool(&mut core,100_000);
+            let remove_value = core::remove_pool_testing(&mut core,100_000);
             balance::destroy_for_testing(remove_value);
             //core.sui test
             assert!(core::get_pool_balance(&core) == 9_900_000,1);
@@ -94,8 +94,8 @@ module suino::core_test{
         {
             let core = test::take_shared<Core>(scenario);
             let ownership = test::take_from_sender<Ownership>(scenario);
-            core::add_owner(&ownership,&mut core,owner3,ctx(scenario));
-            core::add_owner(&ownership,&mut core,owner4,ctx(scenario));
+            core::add_owner_testing(&ownership,&mut core,owner3,ctx(scenario));
+            core::add_owner_testing(&ownership,&mut core,owner4,ctx(scenario));
             test::return_to_sender(scenario,ownership);
             test::return_shared(core);
         };
@@ -153,15 +153,27 @@ module suino::core_test{
             nft::init_for_testing(ctx(scenario));
             core::init_for_testing(ctx(scenario));
         };
-
-    
-        next_tx(scenario,owner);
+        next_tx(scenario,user);
         {
             let state = test::take_shared<NFTState>(scenario);
             
-            nft::test_mint_nft(&mut state,user,ctx(scenario));
-            nft::test_mint_nft(&mut state,user2,ctx(scenario));
-            nft::test_mint_nft(&mut state,user3,ctx(scenario));
+            nft::test_mint(&mut state,ctx(scenario));
+            
+            test::return_shared(state);
+        };
+        next_tx(scenario,user2);
+        {
+            let state = test::take_shared<NFTState>(scenario);
+            
+            nft::test_mint(&mut state,ctx(scenario));
+            
+            test::return_shared(state);
+        };
+        next_tx(scenario,user3);
+        {
+            let state = test::take_shared<NFTState>(scenario);
+            
+            nft::test_mint(&mut state,ctx(scenario));
             
             test::return_shared(state);
         };
@@ -169,9 +181,7 @@ module suino::core_test{
         next_tx(scenario,owner);
         {   
             let core = test::take_shared<Core>(scenario);
-           
-            let test_balance = balance::create_for_testing<SUI>(100000);
-            core::add_reward(&mut core,test_balance);
+            core::add_reward_testing(&mut core,balance::create_for_testing<SUI>(100000));
             test::return_shared(core);
         };
 
@@ -182,7 +192,7 @@ module suino::core_test{
             let core = test::take_shared<Core>(scenario);
             let state = test::take_shared<NFTState>(scenario);
             let ownership = test::take_from_sender<Ownership>(scenario);
-            core::reward_share(&ownership,&mut core,&state,ctx(scenario));
+            core::reward_share_testing(&ownership,&mut core,&state,ctx(scenario));
             assert!(core::get_reward(&core) == 1,0);
             test::return_to_sender(scenario,ownership);
             test::return_shared(state);
@@ -221,7 +231,7 @@ module suino::core_test{
            let ownership = test::take_from_sender<Ownership>(scenario);
            let core = test::take_shared<Core>(scenario);
            let fee_percent = core::get_gaming_fee_percent(&core);
-           core::set_gaming_fee_percent(&ownership,&mut core,30);
+           core::set_gaming_fee_percent_testing(&ownership,&mut core,30);
            let change_percent = core::get_gaming_fee_percent(&core);
            assert!(fee_percent != change_percent,0);
            assert!(change_percent == 30,0);
@@ -248,7 +258,7 @@ module suino::core_test{
            let ownership = test::take_from_sender<Ownership>(scenario);
            let core = test::take_shared<Core>(scenario);
            let lottery_percent = core::get_lottery_percent(&core);
-           core::set_lottery_percent(&ownership,&mut core,30);
+           core::set_lottery_percent_testing(&ownership,&mut core,30);
            let change_percent = core::get_lottery_percent(&core);
            assert!(lottery_percent != change_percent,0);
            assert!(change_percent == 30,0);
@@ -279,10 +289,10 @@ module suino::core_test{
         {
             let core = test::take_shared<Core>(scenario);
             let ownership = test::take_from_sender<Ownership>(scenario);
-            core::add_owner(&ownership,&mut core,user,ctx(scenario));
-            core::add_owner(&ownership,&mut core,user2,ctx(scenario));
-            core::add_owner(&ownership,&mut core,user3,ctx(scenario));
-            core::add_owner(&ownership,&mut core,user4,ctx(scenario));
+            core::add_owner_testing(&ownership,&mut core,user,ctx(scenario));
+            core::add_owner_testing(&ownership,&mut core,user2,ctx(scenario));
+            core::add_owner_testing(&ownership,&mut core,user3,ctx(scenario));
+            core::add_owner_testing(&ownership,&mut core,user4,ctx(scenario));
             test::return_to_sender(scenario,ownership);
             test::return_shared(core);
         };
@@ -297,7 +307,7 @@ module suino::core_test{
     fun sign(scenario:&mut Scenario){
         let core = test::take_shared<Core>(scenario);
         let ownership = test::take_from_sender<Ownership>(scenario);
-        core::sign(&ownership,&mut core,ctx(scenario));
+        core::sign_testing(&ownership,&mut core,ctx(scenario));
         
         test::return_to_sender(scenario,ownership);
         test::return_shared(core);
@@ -306,7 +316,7 @@ module suino::core_test{
     fun withdraw(scenario:&mut Scenario){
         let core = test::take_shared<Core>(scenario);
         let ownership = test::take_from_sender<Ownership>(scenario);
-        core::withdraw(&ownership,&mut core,500_000,ctx(scenario));
+        core::withdraw_testing(&ownership,&mut core,500_000,ctx(scenario));
         assert!(core::get_pool_balance(&core) ==0,0 );
         test::return_to_sender(scenario,ownership);
         test::return_shared(core);
@@ -315,7 +325,7 @@ module suino::core_test{
     fun add_owner(scenario:&mut Scenario,append_owner:address){
         let core = test::take_shared<Core>(scenario);
         let ownership = test::take_from_sender<Ownership>(scenario);
-        core::add_owner(&ownership,&mut core,append_owner,ctx(scenario));
+        core::add_owner_testing(&ownership,&mut core,append_owner,ctx(scenario));
         let owners = core::get_owners(&core);
         assert!(owners== 2,0);
         test::return_to_sender(scenario,ownership);
@@ -325,7 +335,7 @@ module suino::core_test{
         let core = test::take_shared<Core>(scenario);
         let ownership = test::take_from_sender<Ownership>(scenario);
         let test_coin = coin::mint_for_testing<SUI>(500_000,ctx(scenario));
-        core::deposit(&ownership,&mut core,test_coin);
+        core::deposit_testing(&ownership,&mut core,test_coin);
         assert!(core::get_pool_balance(&core) == 500_000,0);
         test::return_to_sender(scenario,ownership);
         test::return_shared(core);

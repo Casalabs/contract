@@ -7,19 +7,16 @@ module suino::sno {
     use sui::transfer;
     use sui::tx_context::{TxContext,sender};
 
-    
-    friend suino::game_utils;
-    friend suino::lottery;
     friend suino::core;
+    friend suino::lottery;
+
     struct SNO has drop { }
 
-
- 
 
     fun init(witness: SNO, ctx: &mut TxContext) {
         let (cap,metadata) = coin::create_currency(
             witness,
-            0,
+            9,
             b"SNO",
             b"SUINO",
             b"This coin use to buy Suino LotteryTicket",
@@ -27,7 +24,6 @@ module suino::sno {
             ctx);
         transfer::share_object(cap);
         transfer::share_object(metadata);
-    
     }
 
     
@@ -38,13 +34,16 @@ module suino::sno {
        coin::mint_and_transfer<SNO>(cap,amount,sender(ctx),ctx)
     }
 
-
     public(friend) fun burn(
         cap: &mut TreasuryCap<SNO>, token: Coin<SNO>
     ) {
        balance::decrease_supply(coin::supply_mut(cap),coin::into_balance(token));
     }
 
+    public entry fun transfer(c: coin::Coin<SNO>, recipient: address) {
+        transfer::transfer(c, recipient)
+    }
+    
     entry fun merge(self:&mut Coin<SNO>,token:Coin<SNO>){
         coin::join(self,token);
     }
