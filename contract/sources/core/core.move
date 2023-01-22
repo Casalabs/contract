@@ -57,12 +57,6 @@ module suino::core{
         name:String,
     }
 
-    struct RandomMaker has key{
-        id:UID,
-        name:String,
-        count:u64,
-    }
-
     struct SetSaltEvent has copy,drop{
         maker:address,
         salt:vector<u8>,
@@ -94,13 +88,7 @@ module suino::core{
             id:object::new(ctx),
             name:string::utf8(b"Suino Core Ownership")
         };
-        let maker = RandomMaker{
-            id:object::new(ctx),
-            name:string::utf8(b"Suino Random Maker"),
-            count:0,
-        };
         transfer::transfer(ownership,sender(ctx));
-        transfer::transfer(maker,sender(ctx));
         transfer::share_object(core)
     }
 
@@ -193,19 +181,19 @@ module suino::core{
     
 
     //==================Maker======================
-    entry fun create_maker(ctx:&mut TxContext){
-        let maker = RandomMaker{
-            id:object::new(ctx),
-            name:string::utf8(b"Suino Random Maker"),
-            count:0,
-        };
-        transfer::transfer(maker,sender(ctx));
-    }
+    // entry fun create_maker(ctx:&mut TxContext){
+    //     let maker = RandomMaker{
+    //         id:object::new(ctx),
+    //         name:string::utf8(b"Suino Random Maker"),
+    //         count:0,
+    //     };
+    //     transfer::transfer(maker,sender(ctx));
+    // }
 
 
-    entry fun set_random_salt(_:&Ownership,core:&mut Core,salt:vector<u8>){
-          random::change_salt(&mut core.random,salt);
-    }
+    // entry fun set_random_salt(_:&Ownership,core:&mut Core,salt:vector<u8>){
+    //       random::change_salt(&mut core.random,salt);
+    // }
   
     // entry fun random_maker_mint_sno(maker:&mut RandomMaker,cap:&mut TreasuryCap<SNO>,ctx:&mut TxContext){
     //     assert!(maker.count >= 1000,EMakerLessTenCount);
