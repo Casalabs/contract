@@ -9,8 +9,8 @@ module suino::core{
     use sui::transfer;
     use sui::tx_context::{TxContext,sender};
     use sui::vec_map as map;
-    use sui::event;
-    use suino::nft::{Self,NFTState,NFT};
+    
+    use suino::nft::{Self,NFTState};
     use suino::random::{Self,Random};
     use suino::utils::{
         calculate_percent_amount
@@ -213,7 +213,7 @@ module suino::core{
     //     maker.count = maker.count - mint_amount * 1000 ;
     //     sno::mint(cap,mint_amount,ctx);
     // }
-    
+
     // entry fun set_random_salt(_:&NFT,maker:&mut RandomMaker,core:&mut Core,salt:vector<u8>,ctx:&mut TxContext){
     //     random::change_salt(&mut core.random,salt);
     //     maker.count = maker.count + 1;

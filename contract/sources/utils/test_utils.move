@@ -7,7 +7,7 @@ module suino::test_utils{
     
     use suino::core::{Self,Core};
     
-    const ENotValidBalance:u64 = 0;
+    const ENotValidBalance:u64 = 1;
     
     public fun coin_mint(scenario:&mut Scenario,user:address,amount:u64){
         let coin = coin::mint_for_testing<SUI>(amount,ctx(scenario));

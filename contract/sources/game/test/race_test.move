@@ -7,10 +7,6 @@ module suino::race_test{
     use suino::race::{Self,Race};
     use suino::core::{Self,Core,Ownership};
     use suino::sno::{Self,SNO};
-    // use suino::player::{
-    //     Player,
-    //     test_only_player,
-    // };
     use suino::test_utils::{balance_check,coin_mint,core_pool_check};
     
     
@@ -101,10 +97,9 @@ module suino::race_test{
         };
 
     
-        next_tx(scenario,user8);
+        next_tx(scenario,user10);
         {
              balance_check(scenario,95_000);
-            
         };
       
         test::end(scenario_val);
@@ -126,7 +121,7 @@ module suino::race_test{
         next_tx(scenario,user);
         {   
             //only test
-            bet(scenario,8);
+            bet(scenario,9);
         };
      
         next_tx(scenario,owner);

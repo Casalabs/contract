@@ -40,7 +40,9 @@ module suino::nft_test{
         //white_list check
         next_tx(scenario,owner);
         {
+
             let data = test::take_shared<NFTMintingData>(scenario);
+            
             assert!(nft::get_white_list(&data) == vector[user,user2,user3],NotInvalidValue);
             test::return_shared(data);
         };
@@ -73,9 +75,10 @@ module suino::nft_test{
         */
         next_tx(scenario,user);
         {
+            
             balance_check(scenario,90000);
-            let attribute1 = nft::create_attribute_testing(b"hair",b"brown");
-            let attribute2 = nft::create_attribute_testing(b"face",b"white");
+            let attribute1 = nft::create_attribute_testing(b"hair",b"black");
+            let attribute2 = nft::create_attribute_testing(b"face",b"black");
             attribute_check(scenario,attribute1,attribute2);
         };   
         
@@ -89,8 +92,8 @@ module suino::nft_test{
         next_tx(scenario,user3);
         {
             balance_check(scenario,90000);
-            let attribute1 = nft::create_attribute_testing(b"hair",b"black");
-            let attribute2 = nft::create_attribute_testing(b"face",b"black");
+            let attribute1 = nft::create_attribute_testing(b"hair",b"gold");
+            let attribute2 = nft::create_attribute_testing(b"face",b"brown");
             attribute_check(scenario,attribute1,attribute2);
         };
         test::end(scenario_val);
@@ -189,9 +192,10 @@ module suino::nft_test{
         test::return_shared(data);
     }
     fun attribute_check(scenario:&mut Scenario,attribute1:Attribute,attribute2:Attribute){
+        use std::debug;
         let nft = test::take_from_sender<NFT>(scenario);
         let nft_attribute = nft::get_attributes(&nft);
-   
+        debug::print(&nft);
         assert!(vector::contains(&nft_attribute,&attribute1),NotInvalidValue); 
         assert!(vector::contains(&nft_attribute,&attribute2),NotInvalidValue); 
         test::return_to_sender(scenario,nft);

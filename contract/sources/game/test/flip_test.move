@@ -38,8 +38,7 @@ module suino::test_flip{
        //jackpot coin check
        next_tx(scenario,user);
        {    
-            // balance_print(scenario);
-            // balance_check(scenario,76_000);
+            balance_check(scenario,76_000);
        };
 
         //state check
@@ -101,8 +100,8 @@ module suino::test_flip{
         //========================Lose=============================
         next_tx(scenario,user);
         {   
-            //[0,0,0] is only test case
-            test_game(scenario,10_000,vector[0,0,1]);
+            //[1,1,1] is only test case
+            test_game(scenario,10_000,vector[1,1,1]);
         };
 
         //fail balance check
