@@ -16,7 +16,7 @@ module suino::sno {
     fun init(witness: SNO, ctx: &mut TxContext) {
         let (cap,metadata) = coin::create_currency(
             witness,
-            9,
+            0,
             b"SNO",
             b"SUINO",
             b"This coin use to buy Suino LotteryTicket",

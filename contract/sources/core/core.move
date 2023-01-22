@@ -202,22 +202,26 @@ module suino::core{
         transfer::transfer(maker,sender(ctx));
     }
 
-    entry fun set_random_salt(_:&NFT,maker:&mut RandomMaker,core:&mut Core,salt:vector<u8>,ctx:&mut TxContext){
-        random::change_salt(&mut core.random,salt);
-        maker.count = maker.count + 1;
-        event::emit(SetSaltEvent{
-            maker:sender(ctx),
-            salt:salt,
-        });
+
+    entry fun set_random_salt(_:&Ownership,core:&mut Core,salt:vector<u8>){
+          random::change_salt(&mut core.random,salt);
     }
   
-    entry fun random_maker_mint_sno(maker:&mut RandomMaker,cap:&mut TreasuryCap<SNO>,ctx:&mut TxContext){
-        assert!(maker.count >= 1000,EMakerLessTenCount);
-        let mint_amount = maker.count / 1000;
-        maker.count = maker.count - mint_amount * 1000 ;
-        sno::mint(cap,mint_amount,ctx);
-    }
-
+    // entry fun random_maker_mint_sno(maker:&mut RandomMaker,cap:&mut TreasuryCap<SNO>,ctx:&mut TxContext){
+    //     assert!(maker.count >= 1000,EMakerLessTenCount);
+    //     let mint_amount = maker.count / 1000;
+    //     maker.count = maker.count - mint_amount * 1000 ;
+    //     sno::mint(cap,mint_amount,ctx);
+    // }
+    
+    // entry fun set_random_salt(_:&NFT,maker:&mut RandomMaker,core:&mut Core,salt:vector<u8>,ctx:&mut TxContext){
+    //     random::change_salt(&mut core.random,salt);
+    //     maker.count = maker.count + 1;
+    //     event::emit(SetSaltEvent{
+    //         maker:sender(ctx),
+    //         salt:salt,
+    //     });
+    // }
 
 
     //=============random=====================
