@@ -1,9 +1,4 @@
-import { owner } from './class/sui';
-import express, { Request, Response } from "express";
-import cors from "cors";
-import cookieParser from "cookie-parser";
-import helmet from "helmet";
-import morgan from "morgan";
+import {  user } from './class/sui';
 import { setIntervalAsync } from "set-interval-async";
 // const app = express()
 // app.use(express.json());
@@ -41,8 +36,49 @@ import { setIntervalAsync } from "set-interval-async";
 // }
 // transaction()
 
+// const faucet = async () => {
+//   try {
+//     await user.faucetGas()
+//   } catch (err) {
+//     console.log(err)
+//   }
+// }
 
-setIntervalAsync(async () => {
-  await owner.flipBet("0x513c843c45bc13e5185afad440c6b681157e0b71", 10000,[1])
-  // console.log("===============================================================")
-}, 10000)
+// faucet()
+
+
+let gasObject = ""
+async function getGas() {
+  // await user.mergeCoin()
+  const gas = await user.getGasObject()
+  gasObject = gas
+}
+
+getGas()
+
+
+let betAmount = 10000
+const bet = async () => {
+  try {
+    const data = await user.flipBet(gasObject, String(betAmount), ["1"])
+    const obj = Object.assign(data)
+    const event = obj.EffectsCert.effects.effects.events
+    const result = event[event.length - 1].moveEvent.fields
+    console.log(result)
+    console.log("======================================")
+    if (result.is_jackpot === false) {
+      betAmount = Math.ceil(betAmount *2.1)
+    } else {
+      betAmount = 10000
+    }
+  } catch (err) {
+    getGas()
+    console.log(err)
+    betAmount = 10000
+  }
+} 
+
+setIntervalAsync(
+ bet
+  // faucet
+, 10000)

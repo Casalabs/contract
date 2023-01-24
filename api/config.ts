@@ -13,4 +13,5 @@ export const config = {
   playerMarket: process.env.PLAYER_MARKET || "",
   flip: process.env.FLIP || "",
   race: process.env.RACE || "",
+  treasury:process.env.TREASURY || ""
 };

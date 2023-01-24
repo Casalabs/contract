@@ -1,0 +1,12 @@
+2023-01-02T07:18:32.493445Z  INFO sui::client_commands: Showing 3 results.
+2023-01-02T07:18:32.494108Z  INFO sui::client_commands: 0xb1049625c741e8f89b3d141921d759f3c2acb0e9
+2023-01-02T07:18:32.494110Z  INFO sui::client_commands: 0xb8112302cba446ba32f223f5e183fc8ab72bee44
+2023-01-02T07:18:32.494112Z  INFO sui::client_commands: 0xfadc346a64b3ba782c27bfce4b4f23027c3823a2
+2023-01-02T10:52:45.186050Z  INFO sui::client_commands: Showing 3 results.
+2023-01-02T10:52:45.186679Z  INFO sui::client_commands: 0xb1049625c741e8f89b3d141921d759f3c2acb0e9
+2023-01-02T10:52:45.186683Z  INFO sui::client_commands: 0xb8112302cba446ba32f223f5e183fc8ab72bee44
+2023-01-02T10:52:45.186685Z  INFO sui::client_commands: 0xfadc346a64b3ba782c27bfce4b4f23027c3823a2
+2023-01-02T11:32:00.885064Z  INFO sui::client_commands: Showing 3 results.
+2023-01-02T11:32:00.885680Z  INFO sui::client_commands: 0xb1049625c741e8f89b3d141921d759f3c2acb0e9
+2023-01-02T11:32:00.885683Z  INFO sui::client_commands: 0xb8112302cba446ba32f223f5e183fc8ab72bee44
+2023-01-02T11:32:00.885685Z  INFO sui::client_commands: 0xfadc346a64b3ba782c27bfce4b4f23027c3823a2
